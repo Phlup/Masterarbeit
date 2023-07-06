@@ -1,1 +1,23 @@
+We aim to develop a univeral system to predict the performance of the potential offspring generated
+from populations in different breeding schemes for multiple traits and crop species
+
 Hier könnte ihre Pipeline stehen!
+
+1. Simulation of genotypes/phenotypes
+1.1 stdpopsim libraries, mutation rate, genomic recombination map
+
+2. Breeding scheme on simulated genotypes
+2.1 schemes (AlphaSimR?)
+n: individual genotype
+n1...nk, k: genotypes
+A k -> T(k) prediction of single phenotype given genotype (no breeding)
+B k1, k2 -> T(k1 x k2) crossing
+C k1, k2 -> max(T(O1), ..., T(Ol)) with Oj = k1 x k2 predicting max phenotype from parents
+--> F1 generations, but consider F5 (after selfing, genotypes are homozygous)
+
+3. ML prediction of phenotypes given breeding genotypes
+3.1
+
+4. Validation of simulated genotypes and phenotypes
+4.1. use real data and population genetics theory
+4.2. validation confidence based on real data availability
