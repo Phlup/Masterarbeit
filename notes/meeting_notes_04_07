@@ -1,0 +1,49 @@
+LITERATUR
+paper zu roggen o.ä. genom für stdpopsim?
+
+maize, sunflower? wheat, soybeans
+-> monocots, dicots
+-> breeding scheme are different?
+-> hybrid breeding scheme?
+-> working with multiple species beneficial
+-> nam population?
+
+bücher/paper zu plant breeding schemes, recombination selfing?
+-> breeding scheme in code -> 1 crossing 5 selfing
+backcross? -> implement, works if parents are homozygous
+
+IDEAS
+not able to predict extremes/3rd task, struggles with identifying outliers
+-> e.g. compare genetic distance between extreme values and mean values
+-> models only work with simulated data w.r.t outliers?
+
+1. validate genotype simulation
+2. phenotypic simulation + validation are different
+
+no enviornmental simulation?
+-> traits with little environmental interaction
+-> traits that mostly depend on genome?
+but environmental interaction is important
+-> e.g. one year with environmental impact + without
+yield is important trait
+
+genotypes, phenotypes of parental lines and F5 generation data available
+
+top 10 hits/top 10% and also whole population distribution both for model output
+-> different optimization tasks (mean <-> outliers)
+-> increasing top 10% also increases bottom 10%??
+
+heb25 barley -> crossing with wild type
+
+benefit of CNN over RF?
+
+neutral theory not necessary since breeding, not selection
+
+TODOS
+read literature
+msprime tutorial pedigree simulation
+stdpopsim tutorial + sunflower simulation
+
+
+next meeting
+1st august 11am
