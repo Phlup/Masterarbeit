@@ -1,0 +1,27 @@
+How to generate variability:
+Crossing (parents), mutagenesis, gene transfer,...
+-> Only crossing schemes considered?
+
+Breeding steps:
+E.g. Figure 16.5: Up to 10 Generations until cultivar release,
+how many F generations for prediction pipeline? 
+Which generations as input/output?
+-> Year 1: desirable homozygous parents?
+Improvement by more complex breeding schemes?
+-> when to select and evaluate?
+why e.g. P1 x P2 -> F1 -> selfing 5 times?
+F1 hybrids seem important
+
+
+which breeding methods involve genetic markers at all? Mass selectio no, pedigree selection yes?
+
+See reinventing quantitative genetics (Bernardo R.)
+-> approaches that are computational and empirical, 
+rather than being based on classical theory and assumptions
+-> Which classical theory and assumptions to include/reject? 
++ genetic maps 
++ ...
+? genetic variance? epistasis, environmental,...
+? Simple traits vs polygenic vs,...
+- Reference population in HW equilibrium
+- identifying major QTL alleles

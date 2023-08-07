@@ -1,0 +1,35 @@
+how to enhance simulation of genotypes? parameterization?
+-> ancestry simulation? forward simulation?
+-> necessary data: genotypes, genetic maps, ...?
+
+ancestry rarely important in breeding, except: ancestry of parent crosses for hybrid cultivars are closer than test cross -> lower inbreeding, higher heterosis
+-> include ancestry into prediction model, is relatedness/inbreeding coefficient in closely related parents relevant factor?
+
+breadth or depth -> general simulation engine supporting many different plants/breeding schemes (e.g. lines, hybrids; bulk selection, recurrent selection, ...)
+		    or try to achieve best possible simulation and prediction accuracy for one species (e.g. maize)
+program:
+"pedigree class" as model supporting implementation of breeding schemes
+"simulation" functions to simulate genotypes based on pedigree/breeding schemes, using varying complexity (all unlinked, linked w/ genetic maps,...)
+"phenotype class" predict phenotype based on simulation using xseedscore, own method? temporary: ground truth for prediction
+"prediction class" predict best parent cross for highest phenotypic value
+
+
+either: do we train the model using simulated genotypes, validate it and use it as supervised ml model to predict best genos?
+-> like genomic selection
+-> how to validate?
+
+or: do we simulate best phenotype values among all combinations of possible parent genotypes?
+-> like phenotypic selection
+-> how to deal with high variation? i.e. every simulation producing different results due to low probability of recomb.
+-> include specific breeding goals, e.g. inclusion of known major QTL into final cultivar
+
+pedigrees:
+rules for implementation i.e. 2 parents per child (can be same parent, selfing), children can only be added to generation n+1
+functions:
+m x m all pairs and given pairs
+selfing
+parental->f1
+
+thesis:
+structure tbd
+topics for intro?

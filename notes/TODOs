@@ -1,14 +1,14 @@
 LITERATUR
-Ch 6 pop genetics
 federico maize nam population
+popgen: recomb + coalescent models
+
 
 CODE
 msprime tutorial pedigree simulation
-stdpopsim tutorial + sunflower simulation
-nam population federico
+nam population data
 
 IDEAS
-figure out rudimentary steps/pipeline
+improve rudimentary steps/pipeline
 
 
 THESIS
