@@ -1,0 +1,67 @@
+Data Barley (pop info, genotypes, genetic map or stick with sunflower?-> sunflower available in stdpopsim but also cross pollinated
+-> more data elsewhere?
+harley university nam barley
+theoretically enough available for (phenotypic) validation
+no difference for publication impact between barley and maize
+
+-> parameters for both maize and barley known? which one more available
+-> optionally: methods work differently well?
+
+maize grass species
+sunflower dicot
+offspring simulation is different
+
+look into one first
+
+XSeedscore
+input, format?
+output, format?
+
+easyPheno
+pipeline TUM computomics
+as many loci as possible for recombination simulation
+
+essentially: full breeding program and phenotypic selection at each generation -> compounding error in simulating genotypes and predicting phenotypes
+or simple genomic selection model with population genetics to simulate genotypes along pedigree
+e.g. good by good on closer related genotypes than tester for hybrids
+good by good for line development
+
+either: do we train the model using simulated genotypes, validate it and use it as supervised ml model to predict best genos?
+-> like genomic selection
+-> how to validate?
+
+or: do we simulate best phenotype values among all combinations of possible parent genotypes?
+-> like phenotypic selection
+-> how to deal with high variation? i.e. every simulation producing different results due to low probability of recomb.
+-> include specific breeding goals, e.g. inclusion of known major QTL into final cultivar
+
+breadth or depth -> general simulation engine supporting many different plants/breeding schemes (e.g. lines, hybrids; bulk selection, recurrent selection, ...)
+                    or try to achieve best possible simulation and prediction accuracy for one species (e.g. maize)
+
+
+breeding strategy: validate genotypic simulation with real breeding data available
+
+or:
+change parameters like recombination rate and effects on genotypic->phenotypic simulation
+
+seperate selection from genotypic simulation
+
+tasks:
+pedigree functions
+start msprime with sunflower
+which data needed for phenotype simulation like in R script by Franz
+-> simulate all pairs most optimal phenotype restricted to maybe 10 sites
+idb segments
+mrca of a site -> parental generation
+no genetic map just flat recomb rate
+-> not realistic uniform phenotype plot
+-> normalise based on recombination rate
+
+
+
+thesis
+outline
+template -> nieselt gruppe
+
+5th september franz zoom 9 Uhr
+
