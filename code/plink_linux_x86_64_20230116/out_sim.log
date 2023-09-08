@@ -1,0 +1,15 @@
+PLINK v1.90b7 64-bit (16 Jan 2023)
+Options in effect:
+  --out out_sim
+  --simulate plink_sim_par.txt
+
+Hostname: DESKTOP-4S26RIJ
+Working directory: /home/phlup/Masterarbeit/code/plink_linux_x86_64_20230116
+Start time: Sun Sep  3 15:49:23 2023
+
+Random number seed: 1693748963
+12751 MB RAM detected; reserving 6375 MB for main workspace.
+Writing --simulate dataset to out_sim.bed + out_sim.bim + out_sim.fam ... done.
+Realized simulation parameters saved to out_sim.simfreq.
+
+End time: Sun Sep  3 15:49:23 2023

@@ -1,0 +1,12 @@
+PLINK v1.90b7 64-bit (16 Jan 2023)
+Options in effect:
+  --simulate
+
+Hostname: DESKTOP-4S26RIJ
+Working directory: /home/phlup/Masterarbeit/code/plink_linux_x86_64_20230116
+Start time: Sun Sep  3 15:45:37 2023
+
+Error: Missing --simulate parameter.
+For more information, try "plink --help <flag name>" or "plink --help | more".
+
+End time: Sun Sep  3 15:45:37 2023
