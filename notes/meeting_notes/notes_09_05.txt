@@ -1,0 +1,19 @@
+data	stdpopsim genomic map format? -> to msprime cm/mB rate needed, wie in salome für arabidopsis? kennt fede genomic map?
+zweitkorrektor nochmal nachfragen tielbörger cc schmid und baumdicker
+masterarbeit intro für indizes nich an basiskonzepten hängen bleiben, detaillevel von hartl nicht äquivalent zur masterarbeit, basis zum klarkommen 
+-> appendix für basics falls geschrieben aber nicht wichtig
+-> paper passend für subsections suchen
+-> buch als quelle außer intensiv eingehen dann originalquelle
+exakt, rund, verständlich
+
+code
+simulierte daten zuerst, easypheno simulierung verstehen, valide? -> "treatment control" gruppe bzw distinkte Phenotype values pro cross simulieren und gucken ob predicte kann
+msprime stdpopsim clonen und in branches code implementieren
+implement chance of selfing in wild selfing population
+crosses aus 2 als simpleste methode
+breeding pedigrees in stdpopsim 
+selektion: voll mitrechnen und phänotyp für alle mitberechnen und dann rausstreichen statt pro generation killen, 
+ausschließen nach simulation geht nur in selfing, da recomb nicht beeinflusst wird
+forward in time andere tools, z.B. slim, für masterarbeit zu viel/optional
+
+dienstag 12.09 10 uhr computomics
