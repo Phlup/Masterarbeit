@@ -21,51 +21,6 @@ X <- makefreq(x, missing = "mean", quiet = TRUE)
 #population cardinality
 nlig <- nrow(X)
 
-x <- matrix(c(0,1,0,1,2,0,2,0,1,1,0,1), nrow = 3)
-
-calculate_snp_frequency <- function(matrix) {
-  num_individuals <- nrow(matrix)
-  num_snps <- ncol(matrix)
-  
-  snp_frequencies <- matrix(0, nrow = num_snps, ncol = 3)
-  
-  for (j in 1:num_snps) {
-    snp_counts <- table(matrix[, j])
-    
-    if (0 %in% names(snp_counts)) {
-      snp_count_0 <- snp_counts[["0"]]
-    } else {
-      snp_count_0 <- 0
-    }
-    
-    if (1 %in% names(snp_counts)) {
-      snp_count_1 <- snp_counts[["1"]]
-    } else {
-      snp_count_1 <- 0
-    }
-    
-    if (2 %in% names(snp_counts)) {
-      snp_count_2 <- snp_counts[["2"]]
-    } else {
-      snp_count_2 <- 0
-    }
-    
-    snp_frequency_0 <- snp_count_0 / num_individuals
-    snp_frequency_1 <- snp_count_1 / num_individuals
-    snp_frequency_2 <- snp_count_2 / num_individuals
-    
-    snp_frequencies[j, ] <- c(snp_frequency_0, snp_frequency_1, snp_frequency_2)
-  }
-  
-  return(snp_frequencies)
-}
-
-example_matrix <- matrix(c(0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1), nrow = 3, ncol = 4, byrow = TRUE)
-
-snp_frequencies <- calculate_snp_frequency(example_matrix)
-
-print(snp_frequencies)
-
 #neis distance
 d <- X %*% t(X)
 vec <- sqrt(diag(d))
