@@ -10,6 +10,7 @@ import tszip
 import pandas as pd
 import numpy as np
 
+#draw pedigree
 def draw_pedigree(ped_ts):
     G = nx.DiGraph()
     for ind in ped_ts.individuals():
@@ -25,6 +26,10 @@ def draw_pedigree(ped_ts):
     nx.draw_networkx(G, pos, with_labels=True, node_color=node_colours)
     plt.show()
 
+#print ancestry
+def draw_ancestry(ts):
+    node_labels = {node.id: f"{node.individual}({node.id})" for node in ts.nodes()}
+    SVG(ts.draw_svg(y_axis=True,  node_labels=node_labels, size=(3500,400)))
 
 #generate pedigree df with n "founder" individuals
 def pedigree_init(n = 10):
@@ -75,11 +80,6 @@ def add_selective_mating(df, parents, offspring = 1):
                                            "time": [0]*offspring}))).reset_index(drop = True)     
     return(df)
 
-
-#print ancestry
-def draw_ancestry(ts):
-    node_labels = {node.id: f"{node.individual}({node.id})" for node in ts.nodes()}
-    SVG(ts.draw_svg(y_axis=True,  node_labels=node_labels, size=(1600,200)))
 
 #propagate geno functions
 def get_set(ts):

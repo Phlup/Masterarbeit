@@ -22,6 +22,11 @@ write.csv(genos_reduce, "../data/test_data/genos_reduce.csv", row.names = FALSE)
 #get pop 1 genotypes
 pop_1_genos <- offspring_genos[c(3:196),]
 colnames(pop_1_genos) <- offspring_genos[2,]
+pop_1_genos[,c(2:1107)] <- sapply(pop_1_genos[,c(2:1107)], as.numeric)
+pop_1_genos[pop_1_genos == 1.5] <- 1.0
+
+pop_1_genos[pop_1_genos == 0.5] <- 1.0
+
 write.csv(pop_1_genos, "../data/test_data/pop_1_genos.csv", row.names = FALSE)
 
 #turn A/A encoding to 0,1,2 of nam snp genos raw

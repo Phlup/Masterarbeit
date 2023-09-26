@@ -39,8 +39,8 @@ gen_map[, rate := cM_diff/(pos_diff/1000000)]
 #impute rates for last SNPs per chr
 gen_map[,rate := replace(rate, is.na(rate), median(rate, na.rm = TRUE)), by = ch]
 
-gen_map <- gen_map[,c("ch", "Position", "rate", "cumulative")]
-colnames(gen_map) <- c("Chromosome", "Position(bp)", "Rate(cM/Mb)", "Map(cM)")
+gen_map <- gen_map[,c("marker","ch", "Position", "rate", "cumulative")]
+colnames(gen_map) <- c("Marker", "Chromosome", "Position(bp)", "Rate(cM/Mb)", "Map(cM)")
 #gen_map$Chromosome <- as.character(gen_map$Chromosome)
 #gen_map$Chromosome <- paste("chr", gen_map$Chromosome, sep = "")
 
