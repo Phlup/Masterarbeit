@@ -1,0 +1,10 @@
+genomic map with recombination rates (cM/Mb) for Maize RILs? Why only graphic not actual data
+-> just divide cM by Mb, but lastSNP position - firstSNP to be more accurate
+
+-> look into simulating multiple chromosomes in msprime. infinite recomb rate between?
+just same simulation 10 times? with same pedigree
+
+-> simulate whole population, compare genotype distribution with actual distribution
+Fixation index, rogers distance, allele frequency spectrum genetic distances wiki + fst principles of popgen
+
+data from breeding scheme to more accurately validate simulation? How did you train your phenotype prediction models?
