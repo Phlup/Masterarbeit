@@ -5,8 +5,6 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import io
 from IPython.display import display as SVG
-import sys
-import tszip
 import pandas as pd
 import numpy as np
 
@@ -96,23 +94,42 @@ def get_edges(parents, ts):
     children = pc_df.loc[pc_df["parent"].isin(parents),]
     return(children)
 
-#replace snp_ids with df of snp + position
-def propagate_geno(ts, genotypes, snp_ids):
-    geno_sim = pd.DataFrame(columns = list(["node"]) + list(snp_ids))
-    geno_sim["node"] = get_set(ts)
-    founders = get_founders(ts)
-    sites = len(pure_genos.columns)
-    for i in range(0, len(founders)):
-        geno_sim.loc[geno_sim["node"] == founders[i], pure_genos.columns] = list(pure_genos.iloc[founders[i]])
+#function to choose founders and split diploid genome into ts nodes -> output genoypes df to use in propagate_geno function
+#not generalizable, specific to dataset from bukler et al 2007
+def get_founder_nodes(genotypes, founders):
+    founder_geno = genotypes.loc[genotypes['RIL'].isin(founders)].drop("RIL", axis = 1)
+    founder_nodes = pd.concat([founder_geno.loc[0].str[0],
+                              founder_geno.loc[0].str[2],
+                              founder_geno.loc[1].str[0],
+                              founder_geno.loc[1].str[2]], axis = 1).T.reset_index(drop = True)
+    return founder_nodes
 
-    edges = get_edges(founders,ts)
+#add typing!!
+def propagate_geno(arg, founder_nodes, genmap):
+    sites = genmap["Marker"]
+    geno_sim = pd.DataFrame(columns = list(["node"]) + list(sites))
+    geno_sim["node"] = get_set(arg)
+    founders = get_founders(arg)
+    founder_nodes = founder_nodes[sites]
+    
+    for i in range(0, len(founders)):
+        geno_sim.loc[geno_sim["node"] == founders[i], sites] = list(founder_nodes.iloc[founders[i]])
+
+    edges = get_edges(founders, arg)
 
     while edges.empty != True:
         for i in range(0, len(edges["parent"])):
-            #replace SNPS with function that takes left and right and SNP names between them from SNP+position df
-            snps = pure_genos.columns[round((edges.iloc[i]["left"]/100)*sites):round((edges.iloc[i]["right"]/100)*sites)]
+            snps = genmap.loc[(genmap['Position(bp)'] >= edges.iloc[i]["left"]) & (genmap['Position(bp)'] <= edges.iloc[i]["right"]), "Marker"]
             geno_sim.loc[geno_sim["node"] == edges.iloc[i]["child"], snps] = geno_sim.loc[geno_sim["node"] == edges.iloc[i]["parent"], snps].values[0]
-        edges = get_edges(edges["child"], ts)
+        edges = get_edges(edges["child"], arg)
     
     
     return(geno_sim)
+
+def get_offspring_geno(arg, geno_sim):
+    return(geno_sim.loc[geno_sim["node"].isin(get_offspring(arg))])
+
+#read_hapmap function to read recombination rates
+def get_rate_map(genmap):
+    genmap = genmap[["Chromosome", "Position(bp)", "Rate(cM/Mb)", "Map(cM)"]]
+    return(msprime.RateMap.read_hapmap(io.StringIO(genmap.to_string(index = False))))
