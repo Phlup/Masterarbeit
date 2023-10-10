@@ -122,8 +122,6 @@ def propagate_geno(arg, founder_nodes, genmap):
             snps = genmap.loc[(genmap['Position(bp)'] >= edges.iloc[i]["left"]) & (genmap['Position(bp)'] <= edges.iloc[i]["right"]), "Marker"]
             geno_sim.loc[geno_sim["node"] == edges.iloc[i]["child"], snps] = geno_sim.loc[geno_sim["node"] == edges.iloc[i]["parent"], snps].values[0]
         edges = get_edges(edges["child"], arg)
-    
-    
     return(geno_sim)
 
 def get_offspring_geno(arg, geno_sim):
@@ -133,3 +131,28 @@ def get_offspring_geno(arg, geno_sim):
 def get_rate_map(genmap):
     genmap = genmap[["Chromosome", "Position(bp)", "Rate(cM/Mb)", "Map(cM)"]]
     return(msprime.RateMap.read_hapmap(io.StringIO(genmap.to_string(index = False))))
+    
+#function to join nodes at individual level to reconstruct diploid genome
+def join_nodes(arg, geno_sim):
+    #get nodes and individuals from node table
+    offspring = get_offspring(arg)
+    individual = []
+    for i in range(0, len(offspring)):
+        individual.append(arg.node(offspring[i]).individual)
+    #merge nodes/ind table with geno_sim nodes
+    nodes_ind = pd.DataFrame({"node": offspring, "individual": individual})
+    offspring_geno = pd.merge(nodes_ind, geno_sim, on = "node", how = "inner")
+    #aggregate nodes per individual
+    offspring_geno = offspring_geno.drop(["node"], axis = 1).groupby("individual").agg(lambda x: "".join(x)).reset_index()
+    return(offspring_geno)
+    
+#function to recast snp into 0,1,2 depending on encoding (in this case: B73 allele: 0, heterozygote 1, non-B73 allele: 2)
+def additive_encoding(ref, genotypes):
+    #melt genotypes, merge to ref allele by snp, for each SNP if heterozygous -> 1 else if identical to b73 -> 0 else 2 
+    melted = genotypes.melt(id_vars=["individual"], var_name = "SNP", value_name = "sim_allele")
+    merged = pd.merge(ref, melted, on = "SNP", how = "inner")
+    merged["Match"] = merged["B73"] == merged["sim_allele"]
+    merged["Value"] = np.where(merged["sim_allele"].str[0] == merged["sim_allele"].str[1], np.where(merged["Match"] == True, 0, 2), 1)
+    geno_add = merged.pivot(index = "individual", columns = "SNP", values = "Value")
+    
+    return(geno_add)

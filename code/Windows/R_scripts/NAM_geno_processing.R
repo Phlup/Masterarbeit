@@ -1,4 +1,5 @@
 library(openxlsx)
+library(data.table)
 
 #genotpyes
 #reduce nam offspring genotypes to subset
@@ -23,13 +24,13 @@ write.csv(genos_reduce, "../data/test_data/genos_reduce.csv", row.names = FALSE)
 pop_1_genos <- offspring_genos[c(3:196),]
 colnames(pop_1_genos) <- offspring_genos[2,]
 pop_1_genos[,c(2:1107)] <- sapply(pop_1_genos[,c(2:1107)], as.numeric)
-pop_1_genos[pop_1_genos == 1.5] <- 1.0
+#pop_1_genos[pop_1_genos == 1.5] <- 1.0
 
-pop_1_genos[pop_1_genos == 0.5] <- 1.0
+#pop_1_genos[pop_1_genos == 0.5] <- 1.0
 
 write.csv(pop_1_genos, "../data/test_data/pop_1_genos.csv", row.names = FALSE)
 
-#turn A/A encoding to 0,1,2 of nam snp genos raw
+#read NAM genos extract parents and b73 allele
 NAM_genos <- read.table("../data/NAM_map_and_genos-121025/NAM_SNP_genos_raw_20090921.txt",
                         row.names = 1)
 
@@ -40,7 +41,8 @@ colnames(NAM_parent_genos)[1] <- "RIL"
 write.csv(NAM_parent_genos, "../data/test_data/NAM_parent_genos.csv", row.names = FALSE)
 
 #B73 allele
-B73_allele <- data.table("SNP" = row.names(NAM_genos), "B73" = substring(NAM_genos[,1], 1, 1))
-write.csv(B73_allele, "../data/test_data/B73_alleles.csv", row.names = FALSE)
+B73_allele <- data.table("SNP" = row.names(NAM_genos), "B73" = paste(substring(NAM_genos[,1], 1, 1), substring(NAM_genos[,1], 3, 3),
+                                                                     sep = ""))
+write.csv(B73_allele[-1], "../data/test_data/B73_alleles.csv", row.names = FALSE)
 
 
