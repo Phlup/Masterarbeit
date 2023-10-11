@@ -97,7 +97,7 @@ def get_edges(parents, ts):
 #function to choose founders and split diploid genome into ts nodes -> output genoypes df to use in propagate_geno function
 #not generalizable, specific to dataset from bukler et al 2007
 def get_founder_nodes(genotypes, founders):
-    founder_geno = genotypes.loc[genotypes['RIL'].isin(founders)].drop("RIL", axis = 1)
+    founder_geno = genotypes.loc[genotypes['RIL'].isin(founders)].drop("RIL", axis = 1).reset_index(drop = True)
     founder_nodes = pd.concat([founder_geno.loc[0].str[0],
                               founder_geno.loc[0].str[2],
                               founder_geno.loc[1].str[0],
@@ -156,3 +156,44 @@ def additive_encoding(ref, genotypes):
     geno_add = merged.pivot(index = "individual", columns = "SNP", values = "Value")
     
     return(geno_add)
+    
+#set up pedigree for crossing two founders with arbitrary offspring and selfing generations
+def cross_selfing_ped(offspring, selfing_genos = 5):
+    cs_ped_df = pedigree_init(n = 2) 
+    cs_ped_df = add_selective_mating(cs_ped_df, list([0,1]), offspring = offspring)
+    for i in range(0, selfing_genos):
+        cs_ped_df = add_selfing(cs_ped_df)
+    return(cs_ped_df)
+
+def genotype_simulation(genetic_map, parent_genos, ref_allele, founder_list, offspring, selfing_genos = 5):
+    #get founder nodes
+    founder_nodes = get_founder_nodes(parent_genos, founder_list)
+    #reduce ref_alleles to alleles in genmap
+    ref_allele = ref_allele[ref_allele["SNP"].isin(genetic_map["Marker"])]
+    #set up pedigree
+    pedigree = cross_selfing_ped(offspring = offspring, selfing_genos = selfing_genos)
+    #init final genotypes dataframe
+    genotypes = pd.DataFrame({"individual": pedigree.loc[pedigree["time"] == 0, "id"]})
+    #loop over each chromosome, append results (treats chromosomes entirely independent)
+    for i in genmap["Chromosome"].unique():
+        #reduce genetic map to chr_i
+        chr_genmap = genmap.loc[genmap["Chromosome"] == i]
+        #set up rate map for chr_i
+        chr_rate_map = get_rate_map(chr_genmap)
+        #get chr_i length
+        chr_len = chr_genmap["Position(bp)"].max()
+        #turn pedigree into ts with chr_i length
+        chr_ts = df_to_ts(pedigree, seq_len=chr_len)
+        #simulate chr_i ARG
+        chr_arg = msprime.sim_ancestry(initial_state = chr_ts, model="fixed_pedigree", recombination_rate = chr_rate_map)
+        #propagate ARG recombinations to offspring genotypes
+        chr_geno_sim = propagate_geno(chr_arg, founder_nodes, chr_genmap)
+        #join haploid offspring simulation nodes to diploid individuals
+        chr_genotypes = join_nodes(chr_arg, chr_geno_sim)
+        #merge chr_i genotypes to final genotypes
+        genotypes = pd.merge(genotypes, chr_genotypes, on = "individual", how = "inner")
+        print(f"finished chromsome {i}")
+    #recode final genotypes to additive encoding according to reference alleles
+    genotypes_additive = additive_encoding(ref_allele, genotypes)
+
+    return(genotypes_additive)

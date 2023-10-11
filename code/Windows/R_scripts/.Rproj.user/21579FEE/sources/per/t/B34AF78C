@@ -3,7 +3,7 @@
     "path": "C:/Users/PHLUP/Masterarbeit/R_scripts/NAM_geno_processing.R",
     "project_path": "NAM_geno_processing.R",
     "type": "r_source",
-    "hash": "844072626",
+    "hash": "863832004",
     "contents": "",
     "dirty": false,
     "created": 1695375570608.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "32,0",
-        "scrollLine": "13"
+        "cursorPosition": "43,0",
+        "scrollLine": "23"
     },
     "folds": "",
-    "lastKnownWriteTime": 1696944153,
+    "lastKnownWriteTime": 1697037837,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1696944153260,
+    "last_content_update": 1697037837506,
     "read_only": false,
     "read_only_alternatives": []
 }

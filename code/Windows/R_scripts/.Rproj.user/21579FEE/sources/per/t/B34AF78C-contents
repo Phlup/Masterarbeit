@@ -25,10 +25,21 @@ pop_1_genos <- offspring_genos[c(3:196),]
 colnames(pop_1_genos) <- offspring_genos[2,]
 pop_1_genos[,c(2:1107)] <- sapply(pop_1_genos[,c(2:1107)], as.numeric)
 #pop_1_genos[pop_1_genos == 1.5] <- 1.0
-
 #pop_1_genos[pop_1_genos == 0.5] <- 1.0
-
 write.csv(pop_1_genos, "../data/test_data/pop_1_genos.csv", row.names = FALSE)
+
+#get pop 2 genotypes
+pop_2_genos <- offspring_genos[c(197:392),]
+colnames(pop_2_genos) <- offspring_genos[2,]
+pop_2_genos[,c(2:1107)] <- sapply(pop_2_genos[,c(2:1107)], as.numeric)
+write.csv(pop_2_genos, "../data/test_data/pop_2_genos.csv", row.names = FALSE)
+
+#get pop 3 genotypes
+pop_3_genos <- offspring_genos[c(393:582),]
+colnames(pop_3_genos) <- offspring_genos[2,]
+pop_3_genos[,c(2:1107)] <- sapply(pop_3_genos[,c(2:1107)], as.numeric)
+write.csv(pop_3_genos, "../data/test_data/pop_3_genos.csv", row.names = FALSE)
+
 
 #read NAM genos extract parents and b73 allele
 NAM_genos <- read.table("../data/NAM_map_and_genos-121025/NAM_SNP_genos_raw_20090921.txt",
