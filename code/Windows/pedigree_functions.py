@@ -175,9 +175,10 @@ def genotype_simulation(genetic_map, parent_genos, ref_allele, founder_list, off
     #init final genotypes dataframe
     genotypes = pd.DataFrame({"individual": pedigree.loc[pedigree["time"] == 0, "id"]})
     #loop over each chromosome, append results (treats chromosomes entirely independent)
-    for i in genmap["Chromosome"].unique():
+    #possible to parallelise due to independence of tasks
+    for i in genetic_map["Chromosome"].unique():
         #reduce genetic map to chr_i
-        chr_genmap = genmap.loc[genmap["Chromosome"] == i]
+        chr_genmap = genetic_map.loc[genetic_map["Chromosome"] == i]
         #set up rate map for chr_i
         chr_rate_map = get_rate_map(chr_genmap)
         #get chr_i length

@@ -24,7 +24,7 @@ gen_map <- gen_map[order(gen_map$ch, gen_map$Position),]
 gen_map <- data.table(gen_map)
 gen_map[, order := ((shift(cumulative, n = -1) - cumulative) >= 0), by = ch]
 
-#manually remove "misplaced SNPs"
+#manually remove non-monotonic SNPs
 gen_map <- gen_map[!(marker %in% c("PZA01072.1", "PZA00545.26", "PZA00963.3", "PZA01960.1",
                                    "zb7.2", "PHM1184.26", "PHM2438.28", "PZA03227.1"))]
 
