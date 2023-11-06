@@ -1,0 +1,21 @@
+measures to validate:
+mean and variance with ancestral/derived allele
+Linkage disequilibrium decay -> implemented where?
+-> compare throughout generations?
+-> for random recombination no recombination or specific genetic map
+-> scale recombination rate so only total changes not relative
+-> SNP distance vs LD (r^2)
+distribution of genetic distance of individuals
+-> to visualize extreme regions of offspring
+additive relationship matrix or rogers distance
+nucleotide diversity across sites -> implemented where?
+SFS? unnecessary because homozygous and similar allele frequencies everywhere?
+LDD curve kolmogorov smirnof test, learning parameter
+
+
+high intraspecies variance of genetic map
+
+phenotype prediction
+phenotype map: phenotype effect of parents (per site) to total phenotype
+
+14.11 11am
