@@ -195,6 +195,6 @@ def genotype_simulation(genetic_map, parent_genos, ref_allele, founder_list, off
         genotypes = pd.merge(genotypes, chr_genotypes, on = "individual", how = "inner")
         print(f"finished chromsome {i}")
     #recode final genotypes to additive encoding according to reference alleles
-    genotypes_additive = additive_encoding(ref_allele, genotypes)
+    #genotypes_additive = additive_encoding(ref_allele, genotypes)
 
-    return(genotypes_additive)
+    return(genotypes)
