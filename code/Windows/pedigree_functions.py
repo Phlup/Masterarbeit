@@ -147,12 +147,24 @@ def join_nodes(arg, geno_sim):
     return(offspring_geno)
     
 #function to recast snp into 0,1,2 depending on encoding (in this case: B73 allele: 0, heterozygote 1, non-B73 allele: 2)
+#def additive_encoding(ref, genotypes):
+#    #melt genotypes, merge to ref allele by snp, for each SNP if heterozygous -> 1 else if identical to b73 -> 0 else 2 
+#    melted = genotypes.melt(id_vars=["individual"], var_name = "SNP", value_name = "sim_allele")
+#    merged = pd.merge(ref, melted, on = "SNP", how = "inner")
+#    merged["Match"] = merged["B73"] == merged["sim_allele"]
+#    merged["Value"] = np.where(merged["sim_allele"].str[0] == merged["sim_allele"].str[1], np.where(merged["Match"] == True, 0, 2), 1)
+#    geno_add = merged.pivot(index = "individual", columns = "SNP", values = "Value")
+#    
+#    return(geno_add)
+    
+        
+#function to recast snp into 0,1,2 depending on encoding (in this case: B73 allele: 0, heterozygote 1, non-B73 allele: 2)
 def additive_encoding(ref, genotypes):
     #melt genotypes, merge to ref allele by snp, for each SNP if heterozygous -> 1 else if identical to b73 -> 0 else 2 
     melted = genotypes.melt(id_vars=["individual"], var_name = "SNP", value_name = "sim_allele")
     merged = pd.merge(ref, melted, on = "SNP", how = "inner")
     merged["Match"] = merged["B73"] == merged["sim_allele"]
-    merged["Value"] = np.where(merged["sim_allele"].str[0] == merged["sim_allele"].str[1], np.where(merged["Match"] == True, 0, 2), 1)
+    merged["Value"] = np.where(merged["sim_allele"].str[0] == merged["sim_allele"].str[1], np.where(merged["Match"] == True, -1, 1), 0)
     geno_add = merged.pivot(index = "individual", columns = "SNP", values = "Value")
     
     return(geno_add)

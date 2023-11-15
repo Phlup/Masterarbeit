@@ -1,0 +1,28 @@
+{
+    "id": "D3565C3C",
+    "path": null,
+    "project_path": null,
+    "type": "object_explorer",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1699953932711.0,
+    "source_on_save": false,
+    "relative_order": 19,
+    "properties": {
+        "id": "0fdb9dd0554543c79fc432026c629c39",
+        "name": "pop_1_list",
+        "title": "pop_1_list",
+        "language": "R",
+        "source_window_id": "",
+        "Source": "Source"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 2732115907288,
+    "encoding": "",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1699953932711,
+    "read_only": false,
+    "read_only_alternatives": []
+}
