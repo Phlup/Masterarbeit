@@ -31,7 +31,7 @@ sommer: mixed models generate simulated phenotypic data
 
 1. scripts for different founders
 2. give scripts to computomics for barley
-3. genotype phenotype and founders and simulated data of NAM pop -> geno to pheno prediction
+3. genotype phenotype of founders and genotype simulated data of NAM pop -> geno to pheno prediction
 3.1 geno->pheno prediction myself
 
 no recombination model
