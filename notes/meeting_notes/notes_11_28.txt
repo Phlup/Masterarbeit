@@ -1,0 +1,4 @@
+summary statistic for overall scoring of error rate? 
+metric of divergence between (probability) distributions? 
+KL-divergence? 
+2d-sliced wasserstein distance?

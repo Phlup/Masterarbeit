@@ -106,3 +106,9 @@ def neis_distance(X: np.ndarray) -> np.ndarray:
     d = np.asarray(d)
     
     return d
+    
+#sum up additive genotype function (Rowsums)
+#tabulate genotype counts across all individuals and sites
+#KL divergence or sliced wasserstein distance on 2d distributions
+
+#replicate genotype simulation for summary statistics
