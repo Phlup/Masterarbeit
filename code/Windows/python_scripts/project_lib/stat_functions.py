@@ -106,9 +106,55 @@ def neis_distance(X: np.ndarray) -> np.ndarray:
     d = np.asarray(d)
     
     return d
-    
-#sum up additive genotype function (Rowsums)
-#tabulate genotype counts across all individuals and sites
-#KL divergence or sliced wasserstein distance on 2d distributions
 
-#replicate genotype simulation for summary statistics
+#tabulate genotype counts across all individuals and sites
+def genotype_counts(genotype_sim: pd.DataFrame) -> pd.Series:
+    """
+    Tabulate genotype counts across all individuals and sites.
+
+    Parameters:
+        genotype_sim (pd.DataFrame): DataFrame containing simulated genotypes.
+
+    Returns:
+        pd.Series: Series containing genotype counts.
+    """
+    return(pd.Series(genotype_sim.values.flatten().tolist()).value_counts()
+
+#generate and save summary histogram, KDEs and statistics to compare real and simulated genotype distribution
+def summary_plot(real_additive: pd.DataFrame, sim_additive: pd.DataFrame, founder_list: List[str], out_path: str) -> None:
+    """
+    Generate a summary plot comparing real and simulated genotypes.
+
+    Parameters:
+        real_additive (pd.DataFrame): DataFrame containing real additive encoded genotypes.
+        sim_additive (pd.DataFrame): DataFrame containing simulated additive encoded genotypes.
+        founder_list (List[str]): List of two founder names.
+        out_path (str): Output path for the summary plot.
+    """
+    #get vector of sums of additive encoding for all individuals
+    real_sum = real_additive.sum(axis = 1)
+    sim_sum = sim_additive.sum(axis = 1)
+
+    #calculate ks test statistic and p value
+    ks_statistic, p_value = stats.ks_2samp(real_sum, sim_sum)
+    
+    #calculate wasserstein distance
+    wasserstein_dist = stats.wasserstein_distance(real_sum, sim_sum)
+
+    #compute common bins
+    bins = np.linspace(min(np.concatenate([real_sum, sim_sum])), max(np.concatenate([real_sum, sim_sum])), 30)
+
+    #plot histogram and KDEs with ks test and WS dist
+    sns.histplot(real_sum, kde = True, label = "Real genotypes", color = "blue", bins = bins, alpha = 0.1)
+    sns.histplot(sim_sum, kde = True, label = "Simulated genotypes", color = "orange", bins = bins, alpha = 0.1)
+    plt.legend()
+    plt.title("Histograms, KDEs and summary statistics of real and simulated genotypes for " + founder_list[0] + "x" + founder_list[1])
+    plt.xlabel("Sum of additive encoding per individual")
+    plt.text(0.05, 0.95, f'KS Statistic: {ks_statistic:.4f}\nKS Test P-Value: {p_value:.4f}', 
+         transform=plt.gca().transAxes, fontsize=10,
+         verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+    plt.text(0.05, 0.85, f'Wasserstein Distance: {wasserstein_dist:.2f}', transform=plt.gca().transAxes, fontsize=10,
+         verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+
+    plt.savefig(out_path, dpi = 300, bbox_inches = "tight")
+

@@ -111,7 +111,7 @@ def cross_selfing_ped(offspring: int, selfing_genos: int = 5) -> pd.DataFrame:
     return(cs_ped_df)
 
 #generate msprime trees from df
-def df_to_ts(df: pd.DataFrame, seq_len: int = 100) -> msprime.TreeSequence:
+def df_to_ts(df: pd.DataFrame, seq_len: int = 100) -> tskit.TreeSequence:
     """
     Generate a tree sequence from a DataFrame representing a pedigree.
 
@@ -120,7 +120,7 @@ def df_to_ts(df: pd.DataFrame, seq_len: int = 100) -> msprime.TreeSequence:
         seq_len (int): Length of the sequence/chromosome.
 
     Returns:
-        msprime.TreeSequence: Generated tree sequence.
+        tskit.TreeSequence: Generated tree sequence.
     """
     ped_string = df.to_string(index = False)
     ts_ped = msprime.parse_pedigree(io.StringIO("#" + ped_string), sequence_length = seq_len)
@@ -128,49 +128,49 @@ def df_to_ts(df: pd.DataFrame, seq_len: int = 100) -> msprime.TreeSequence:
 
 ##genotype simulation functions
 #propagate geno functions
-def get_set(ts: msprime.TreeSequence) -> List[int]:
+def get_set(ts: tskit.TreeSequence) -> List[int]:
     """
     Get a list of all unique edges in the tree sequence (each edge has at least one child or parent).
 
     Parameters:
-        ts (msprime.TreeSequence): A tree sequence.
+        ts (tskit.TreeSequence): A tree sequence.
 
     Returns:
         List[int]: List of unique edges.
     """
     return(list(set(ts.edges_parent).union(set(ts.edges_child))))
 
-def get_founders(ts: msprime.TreeSequence) -> List[int]:
+def get_founders(ts: tskit.TreeSequence) -> List[int]:
     """
     Get a list of founders in the tree sequence (all nodes except founders have parents).
 
     Parameters:
-        ts (msprime.TreeSequence): A tree sequence.
+        ts (tskit.TreeSequence): A tree sequence.
 
     Returns:
         List[int]: List of founder nodes.
     """
     return(list(set(ts.edges_parent) - set(ts.edges_child)))
 
-def get_offspring(ts: msprime.TreeSequence) -> List[int]:
+def get_offspring(ts: tskit.TreeSequence) -> List[int]:
     """
     Get a list of offspring (last generation) in the tree sequence (all nodes except offspring have children).
 
     Parameters:
-        ts (msprime.TreeSequence): A tree sequence.
+        ts (tskit.TreeSequence): A tree sequence.
 
     Returns:
         List[int]: List of offspring nodes.
     """
     return(list(set(ts.edges_child) - set(ts.edges_parent)))
 
-def get_edges(parents: List[int], ts: msprime.TreeSequence) -> pd.DataFrame:
+def get_edges(parents: List[int], ts: tskit.TreeSequence) -> pd.DataFrame:
     """
     Get a DataFrame containing all edges of next generation in ARG in ts.
 
     Parameters:
         parents (List[int]): List of parent nodes.
-        ts (msprime.TreeSequence): A tree sequence.
+        ts (tskit.TreeSequence): A tree sequence.
 
     Returns:
         pd.DataFrame: DataFrame containing edges.
@@ -200,12 +200,12 @@ founders
     return founder_nodes
 
 #propagate genotypes of founders along ancestral recombination graph using genetic map
-def propagate_geno(arg: msprime.TreeSequence, founder_nodes: pd.DataFrame, genmap: pd.DataFrame) -> pd.DataFrame:
+def propagate_geno(arg: tskit.TreeSequence, founder_nodes: pd.DataFrame, genmap: pd.DataFrame) -> pd.DataFrame:
     """
     Propagate genotypes through the tree sequence/ARG.
 
     Parameters:
-        arg (msprime.TreeSequence): TreeSequence object obtained from msprime.sim_ancestry.
+        arg (tskit.TreeSequence): TreeSequence object obtained from msprime.sim_ancestry.
         founder_nodes (pd.DataFrame): DataFrame containing founder nodes.
         genmap (pd.DataFrame): DataFrame containing genetic map.
 
@@ -231,12 +231,12 @@ def propagate_geno(arg: msprime.TreeSequence, founder_nodes: pd.DataFrame, genma
     return(geno_sim)
 
 #return offspring genotypes of genotype propagation
-def get_offspring_geno(arg: msprime.TreeSequence, geno_sim: pd.DataFrame) -> pd.DataFrame:
+def get_offspring_geno(arg: tskit.TreeSequence, geno_sim: pd.DataFrame) -> pd.DataFrame:
     """
     Get genotypes of offspring nodes from propagated genotypes DataFrame.
 
     Parameters:
-        arg (msprime.TreeSequence): TreeSequence object obtained from msprime.sim_ancestry.
+        arg (tskit.TreeSequence): TreeSequence object obtained from msprime.sim_ancestry.
         geno_sim (pd.DataFrame): DataFrame containing propagated genotypes.
 
     Returns:
@@ -259,12 +259,12 @@ def get_rate_map(genmap: pd.DataFrame) -> msprime.RateMap:
     return(msprime.RateMap.read_hapmap(io.StringIO(genmap.to_string(index = False))))
     
 #function to join nodes at individual level to reconstruct diploid genome
-def join_nodes(arg: msprime.TreeSequence, geno_sim: pd.DataFrame) -> pd.DataFrame:
+def join_nodes(arg: tskit.TreeSequence, geno_sim: pd.DataFrame) -> pd.DataFrame:
     """
     Join nodes at individual level to reconstruct diploid genome.
 
     Parameters:
-        arg (msprime.TreeSequence): TreeSequence object obtained from msprime.sim_ancestry.
+        arg (tskit.TreeSequence): TreeSequence object obtained from msprime.sim_ancestry.
         geno_sim (pd.DataFrame): DataFrame containing propagated genotypes.
 
     Returns:
@@ -282,7 +282,7 @@ def join_nodes(arg: msprime.TreeSequence, geno_sim: pd.DataFrame) -> pd.DataFram
     offspring_geno = offspring_geno.drop(["node"], axis = 1).groupby("individual").agg(lambda x: "".join(x)).reset_index()
     return(offspring_geno)
         
-#function to recast snp into 0,1,2 depending on encoding (in this case: B73 allele: 0, heterozygote 1, non-B73 allele: 2)
+#function to recast snp into 0,1,2 depending on encoding (in this case: B73 allele: -1, heterozygote 0, non-B73 allele: 1)
 def additive_encoding(ref: pd.DataFrame, genotypes: pd.DataFrame) -> pd.DataFrame:
     """
     Recast SNP into 0, 1, 2 depending on encoding.

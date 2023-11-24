@@ -20,6 +20,25 @@ genos_reduce[genos_reduce == 0.5] <- 1.0
 
 write.csv(genos_reduce, "../data/test_data/genos_reduce.csv", row.names = FALSE)
 
+#get population genotypes
+genos_raw <- read.table("../data/NAM_map_and_genos-121025/NAM_SNP_genos_raw_20090921.txt",
+                        row.names = 1)
+genos_raw <- t(genos_raw)
+
+genos_raw <- genos_raw[-c(1:27),]
+
+start = 1
+for (i in 1:(length(genos_raw[,1])-1)){
+  if(substring(genos_raw[i,1],0,4) != substring(genos_raw[i+1,1],0,4)){
+    end = i
+    pop = substring(genos_raw[i,1],3,4)
+    write.csv(genos_raw[c(start:end),], paste("../data/NAM_genotype_data/pop_", pop, "_genos.csv", sep = ""), row.names = FALSE)
+    start = i+1
+  }
+}
+pop = substring(genos_raw[start,1],3,4)
+write.csv(genos_raw[c(start:i+1),], paste("../data/NAM_genotype_data/pop_", pop, "_genos.csv", sep = ""), row.names = FALSE)
+
 #get pop 1 genotypes
 pop_1_genos <- offspring_genos[c(3:196),]
 colnames(pop_1_genos) <- offspring_genos[2,]

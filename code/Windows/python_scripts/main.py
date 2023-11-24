@@ -11,7 +11,20 @@ if __name__ == '__main__':
     # read reference allele
     ref_allele = pd.read_csv("../data/test_data/B73_alleles.csv")
 
-    whole_sim = genotype_simulation(genetic_map=genmap, parent_genos=parent_genos, ref_allele=ref_allele,
-                                    founder_list=list(["B73", "B97"]), offspring=194, selfing_genos=5)
+    founders = parent_genos["RIL"]
 
-    whole_sim.to_csv("../sim_output/whole_sim.csv")
+    founder_pairs = [(founders[0], non_b73) for non_b73 in founders[1:]]
+
+    for i in range(0, len(founder_pairs)):
+
+        whole_sim = genotype_simulation(genetic_map=genmap, parent_genos=parent_genos, ref_allele=ref_allele,
+                                        founder_list=founder_pairs[i], offspring=200, selfing_genos=5)
+
+        whole_sim.to_csv("../sim_output/geno_encoding/geno_" + founder_pairs[i][0] + "_" + founder_pairs[i][1] + ".csv")
+
+        add_sim = additive_encoding(ref_allele, whole_sim)
+
+        add_sim.to_csv("../sim_output/additive_encoding/geno_" + founder_pairs[i][0] + "_" + founder_pairs[i][1] + ".csv")
+        print("finished simulating " + founder_pairs[i][0] + "x" + founder_pairs[i][1] + " (" + str(i+1) + "/"
+              + str(len(founder_pairs)) + ")")
+
