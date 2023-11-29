@@ -12,7 +12,7 @@ source("nuc_diversity.R")
 #nucleotide diversity (tbd)
 #others? -> measures mostly focused on popgenetic hypothesis, e.g. neutral vs non-neutral evolution tajimas D
 
-map <- read.csv("../data/test_data/B73_genmap.csv")
+map <- read.csv("../data/sim_data/B73_genmap.csv")
 #keep Locus/Marker, Position and LG/Chromosome
 map <- map[,c("Marker", "Map.cM.", "Chromosome")]
 colnames(map) <- c("Locus","Position","LG")
@@ -41,7 +41,7 @@ plot_LD_decay <- function(est, title){
 }
 
 #LD decay with recombination
-whole_add <- read.csv("../data/sim_output/whole_add.csv")
+whole_add <- read.csv("../sim_output/additive_encoding/geno_B73_B97.csv")
 whole_add <- whole_add[-1]
 
 res_rec <- LD.decay(whole_add, map)
@@ -57,13 +57,13 @@ plot_LD_decay(res_rec, "R2~D in recombination simulation")
 #plot_LD_decay(res_norec)
 
 #LD decay in real population
-add_1 <- read.csv("../data/sim_output/add_1.csv")
+add_1 <- read.csv("../data/test_data/additive_1.csv")
 add_1 <- add_1[-1]
 
 res_pop1 <- LD.decay(add_1, map)
 res_pop1$all.LG <- res_pop1$all.LG[(res_pop1$all.LG$p < .001),]
 plot_LD_decay(res_pop1, "R2~D in real population")
-
+par(mfrow=c(1,2))
 #density plot of r2 of sim and real pop
 plot(density(res_rec[["all.LG"]][["r2"]]))
 plot(density(res_pop1[["all.LG"]][["r2"]]))

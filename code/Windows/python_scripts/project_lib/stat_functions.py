@@ -8,6 +8,8 @@ from IPython.display import display as SVG
 import pandas as pd
 import numpy as np
 from typing import List, Tuple, Dict
+import scipy.stats as stats
+import seaborn as sns
 
 #draw pedigree
 def draw_pedigree(ped_ts: tskit.TableCollection) -> None:
@@ -35,12 +37,12 @@ def draw_pedigree(ped_ts: tskit.TableCollection) -> None:
     plt.show()
 
 #print ancestry
-def draw_ancestry(ts: msprime.TreeSequence) -> None:
+def draw_ancestry(ts: tskit.TreeSequence) -> None:
     """
     Print the ancestry of individuals in the tree sequence as ancestral recombination graph (ARG).
 
     Parameters:
-        ts (msprime.TreeSequence): A tree sequence.
+        ts (tskit.TreeSequence): A tree sequence.
 
     Returns:
         None, displays plot
@@ -118,7 +120,7 @@ def genotype_counts(genotype_sim: pd.DataFrame) -> pd.Series:
     Returns:
         pd.Series: Series containing genotype counts.
     """
-    return(pd.Series(genotype_sim.values.flatten().tolist()).value_counts()
+    return(pd.Series(genotype_sim.values.flatten().tolist()).value_counts())
 
 #generate and save summary histogram, KDEs and statistics to compare real and simulated genotype distribution
 def summary_plot(real_additive: pd.DataFrame, sim_additive: pd.DataFrame, founder_list: List[str], out_path: str) -> None:

@@ -24,14 +24,14 @@ gen_map <- gen_map[order(gen_map$ch, gen_map$Position),]
 gen_map <- data.table(gen_map)
 gen_map[, order := ((shift(cumulative, n = -1) - cumulative) >= 0), by = ch]
 
-#manually remove non-monotonic SNPs
+#manually remove non-monotonic SNPs (which are ordered the other way round than above order variable)
 gen_map <- gen_map[!(marker %in% c("PZA01072.1", "PZA00545.26", "PZA00963.3", "PZA01960.1",
                                    "zb7.2", "PHM1184.26", "PHM2438.28", "PZA03227.1"))]
 
-#remove SNPs where cumulative cM order != SNP position order
+#remove SNPs where cumulative cM order != SNP position order (non-monotonic SNPs)
 gen_map <- gen_map[order == TRUE]
 
-#(i+1-i)/(j+1-j) where i is cM and j is Mb, transform to Mb, group by chr
+#calc cM/Mb: (i+1-i)/(j+1-j) where i is cM and j is bp, transform to Mb, group by chr
 gen_map[, pos_diff := (shift(Position, n = -1) - Position), by = ch]
 gen_map[, cM_diff := (shift(cumulative, n = -1) - cumulative), by = ch]
 gen_map[, rate := cM_diff/(pos_diff/1000000)]
@@ -41,13 +41,11 @@ gen_map[,rate := replace(rate, is.na(rate), median(rate, na.rm = TRUE)), by = ch
 
 gen_map <- gen_map[,c("marker","ch", "Position", "rate", "cumulative")]
 colnames(gen_map) <- c("Marker", "Chromosome", "Position(bp)", "Rate(cM/Mb)", "Map(cM)")
-#gen_map$Chromosome <- as.character(gen_map$Chromosome)
-#gen_map$Chromosome <- paste("chr", gen_map$Chromosome, sep = "")
 
 #save chr1 and complete set
-genmap_chr1 <- gen_map[Chromosome == 1]
-write.csv(genmap_chr1, "../data/test_data/B73_genmap_chr1.csv", row.names = FALSE)
+#genmap_chr1 <- gen_map[Chromosome == 1]
+#write.csv(genmap_chr1, "../data/test_data/B73_genmap_chr1.csv", row.names = FALSE)
 
-write.csv(gen_map, "../data/test_data/B73_genmap.csv", row.names = FALSE)
+write.csv(gen_map, "../data/sim_data/B73_genmap.csv", row.names = FALSE)
 
 

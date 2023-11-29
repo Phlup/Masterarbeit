@@ -8,6 +8,8 @@ from IPython.display import display as SVG
 import pandas as pd
 import numpy as np
 from typing import List, Tuple, Dict
+import scipy.stats as stats
+import seaborn as sns
 
 ##pedigree functions
 #generate pedigree df with n "founder" individuals
@@ -329,6 +331,7 @@ def genotype_simulation(genetic_map: pd.DataFrame, parent_genos: pd.DataFrame, r
     genotypes = pd.DataFrame({"individual": pedigree.loc[pedigree["time"] == 0, "id"]})
     #loop over each chromosome, append results (treats chromosomes entirely independent)
     #possible to parallelise due to independence of tasks
+    print("starting simulation")
     for i in genetic_map["Chromosome"].unique():
         #reduce genetic map to chr_i
         chr_genmap = genetic_map.loc[genetic_map["Chromosome"] == i]
