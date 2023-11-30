@@ -37,36 +37,36 @@ if __name__ == '__main__':
 
         norm_add = additive_encoding(ref_allele, norm_sim)
 
-        norm_add.to_csv("sim_output/normal_rec/additive_encoding/geno_" + str(i+1) + ".csv")
+        norm_add.to_csv("sim_output/normal_rec/additive_encoding/add_" + str(i+1) + ".csv")
 
         #high recombination rate
         high_sim = genotype_simulation(genetic_map=genmap_high, parent_genos=parent_genos, ref_allele=ref_allele,
                                         founder_list=pop, offspring=size_dict[i+1], selfing_genos=5)
 
-        high_sim.to_csv("sim_output/high_rec/geno_encoding/geno_" + str(i+1) + ".csv")
+        high_sim.to_csv("sim_output/high_rec/geno_encoding/high_geno_" + str(i+1) + ".csv")
 
         high_add = additive_encoding(ref_allele, high_sim)
 
-        high_add.to_csv("sim_output/high_rec/additive_encoding/geno_" + str(i+1) + ".csv")
+        high_add.to_csv("sim_output/high_rec/additive_encoding/high_add_" + str(i+1) + ".csv")
 
         #zero recombination rate
         zero_sim = genotype_simulation(genetic_map=genmap_zero, parent_genos=parent_genos, ref_allele=ref_allele,
                                         founder_list=pop, offspring=size_dict[i+1], selfing_genos=5)
 
-        zero_sim.to_csv("sim_output/zero_rec/geno_encoding/geno_" + str(i+1) + ".csv")
+        zero_sim.to_csv("sim_output/zero_rec/geno_encoding/zero_geno_" + str(i+1) + ".csv")
 
         zero_add = additive_encoding(ref_allele, zero_sim)
 
-        zero_add.to_csv("sim_output/zero_rec/additive_encoding/geno_" + str(i+1) + ".csv")
+        zero_add.to_csv("sim_output/zero_rec/additive_encoding/zero_add_" + str(i+1) + ".csv")
 
         #mean recombination rate
         mean_sim = genotype_simulation(genetic_map=genmap_mean, parent_genos=parent_genos, ref_allele=ref_allele,
                                         founder_list=pop, offspring=size_dict[i+1], selfing_genos=5)
 
-        mean_sim.to_csv("sim_output/mean_rec/geno_encoding/geno_" + str(i+1) + ".csv")
+        mean_sim.to_csv("sim_output/mean_rec/geno_encoding/mean_geno_" + str(i+1) + ".csv")
 
         mean_add = additive_encoding(ref_allele, mean_sim)
 
-        mean_add.to_csv("sim_output/mean_rec/additive_encoding/geno_" + str(i+1) + ".csv")
+        mean_add.to_csv("sim_output/mean_rec/additive_encoding/mean_add_" + str(i+1) + ".csv")
         print(f"finished simulating {pop_dict[i+1]} ({i+1}/{len(pop_dict)})")
 

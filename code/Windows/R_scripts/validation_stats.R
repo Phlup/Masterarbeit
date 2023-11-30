@@ -17,21 +17,6 @@ map <- read.csv("../data/sim_data/B73_genmap.csv")
 map <- map[,c("Marker", "Map.cM.", "Chromosome")]
 colnames(map) <- c("Locus","Position","LG")
 
-#data(DT_cpdata)
-#CPgeno <- GT_cpdata
-#CPgeno[1:5,1:5]
-#
-#mapCP <- MP_cpdata; head(mapCP)
-#names(mapCP) <- c("Locus","Position","LG")
-#
-#mapCP <- mapCP[which(mapCP$LG <= 3),]
-#
-#res <- LD.decay(CPgeno, mapCP)
-#names(res)
-#
-##constrain to significant LG with p < 0.001
-#res$all.LG <- res$all.LG[which(res$all.LG$p < .001),]
-
 plot_LD_decay <- function(est, title){
   with(est$all.LG, plot(r2~d,col=transp("cadetblue"),
                         xlim=c(0,55), ylim=c(0,1), 
