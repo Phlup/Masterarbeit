@@ -26,7 +26,7 @@ if __name__ == '__main__':
     genmap_mean = genmap.copy()
     genmap_mean["Rate(cM/Mb)"] = genmap["Rate(cM/Mb)"].mean()
 
-    for i in range(0, len(pop_dict)):
+    for i in range(25, len(pop_dict)+1):
         pop = pop_dict[i+1].split("_")
 
         #normal estimated recombination rate
