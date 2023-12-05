@@ -26,21 +26,26 @@ genos_raw <- read.table("../data/NAM_map_and_genos-121025/NAM_SNP_genos_raw_2009
 genos_raw <- t(genos_raw)
 
 genos_raw <- genos_raw[-c(1:27),]
-
 start = 1
 size = NA
 for (i in 1:(length(genos_raw[,1])-1)){
   if(substring(genos_raw[i,1],0,4) != substring(genos_raw[i+1,1],0,4)){
     end = i
     pop = sub("^0+", "", substring(genos_raw[i,1],3,4))
-    write.csv(genos_raw[c(start:end),], paste("../data/NAM_genotype_data/pop_", pop,
+    genos <- genos_raw[c(start:end),]
+    genos[,1] <- sub("^0+", "", substr(genos[,1], nchar(genos[1,1])-2, nchar(genos[1,1])))
+    colnames(genos)[1] <- "individual"
+    write.csv(genos, paste("../data/NAM_genotype_data/pop_", pop,
                                               "_genos.csv", sep = ""), row.names = FALSE)
     size <- c(size, length(start:end))
     start = i+1
   }
 }
 pop = substring(genos_raw[start,1],3,4)
-write.csv(genos_raw[c(start:i+1),], paste("../data/NAM_genotype_data/pop_", pop,
+genos <- genos_raw[c(start:i+1),]
+genos[,1] <- sub("^0+", "", substr(genos[,1], nchar(genos[1,1])-2, nchar(genos[1,1])))
+colnames(genos)[1] <- "individual"
+write.csv(genos, paste("../data/NAM_genotype_data/pop_", pop,
                                           "_genos.csv", sep = ""), row.names = FALSE)
 size <- c(size, length(start:i+1))
 populations$size <- size[-1]
