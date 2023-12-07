@@ -1,20 +1,118 @@
 library(sommer)
 library(stats)
-source("nuc_diversity.R")
+library(transport)
+source("stat_functions.R")
 
-#Stats implemented to validate simulation
-#Table of simulated alleles in diploid gene sequence format (python)
-#Heterozygous/reference/derived alleles (python)
-#Histogram/density plot of additive encoding based on reference allele (python)
+##generate summary statistics for genotype simulation across all populations and recombination scenarios
+
+#Stats implemented:
+
+#1. distributional differences
+#Table of simulated alleles in diploid gene sequence format
+#Heterozygous/reference/derived alleles
+#chisq test between tables (hetero+all)
+#ks test for dist diff
+#table p threshold + p raw (p adjust?)
+#calc concordance, save table
+
+#2. plotting distributions
+#Histogram/density plot of additive encoding based on reference allele
+
+#3. additional popgen stats
 #linkage disequilibrium decay (r2~d)
 #ks test/density of r2 between sim and real encoding
 #distance measure (e.g. euclidean/rogers distance)
-#nucleotide diversity (tbd)
-#others? -> measures mostly focused on popgenetic hypothesis, e.g. neutral vs non-neutral evolution tajimas D
+#nucleotide diversity
 
-map <- read.csv("../data/sim_data/B73_genmap.csv")
+#read genmap to constrain markers/calc ld decay etc.
+genmap <- read.csv("../data/sim_data/B73_genmap.csv")
+#read populations
+populations <- read.csv("../data/sim_data/populations.csv")
+
+##1.----
+#vary over all recombination parameters
+rec_param <- c("normal_rec", "high_rec", "zero_rec", "mean_rec")
+for(i in rec_param){
+  sum_stats <- data.frame("population" = populations$pop, "het_p" = NA, "geno_p" = NA, "ks_p" = NA, "w1d" = NA)
+  #vary over all simulated pops
+  for(j in populations$pop){
+    #read real and sim pop
+    sim_geno <- read.csv(paste("../sim_output/",i,"/geno_encoding/geno_",j,".csv", sep = ""))[-1]
+    real_geno <- read.csv(paste("../data/NAM_genotype_data/geno_encoding/pop_",j,"_genos.csv", sep = ""))
+    sim_add <- read.csv(paste("../sim_output/",i,"/additive_encoding/add_",j,".csv", sep = ""))
+    real_add <- read.csv(paste("../data/NAM_genotype_data/additive_encoding/pop_",j,"_add.csv", sep = ""))
+    
+    #constrain to same markers
+    sim_geno <- sim_geno[,genmap$Marker]
+    real_geno <- real_geno[,genmap$Marker]
+    sim_add <- sim_add[,genmap$Marker]
+    real_add <- real_add[,genmap$Marker]
+    
+    #tabulate entire df
+    table(unlist(sim_geno))
+    table(unlist(real_geno))
+    
+    #calculate # of het
+    sample <- sample(c(1:194), 10)
+    het_mat <- as.matrix(cbind(table(unlist(sim_add[sample,]) == 0), table(unlist(real_add[sample,]) == 0)))
+    
+    #calc # of all genos
+    geno_names <- intersect(names(table(unlist(sim_geno[sample,]))), names(table(unlist(real_geno[sample,]))))
+    geno_mat <- as.matrix(cbind(table(unlist(sim_geno[sample,]))[geno_names],
+                                table(unlist(real_geno[sample,]))[geno_names]))
+    
+    #chisq.tests
+    het_p <- chisq.test(het_mat)$p.value
+    geno_p <- chisq.test(geno_mat)$p.value
+    #ks test
+    ks_p <- ks.test(rowSums(sim_add), rowSums(real_add))$p.value
+    #wasserstein dist
+    w1d <- wasserstein1d(rowSums(sim_add), rowSums(real_add))
+    
+    stats <- c(het_p, geno_p, ks_p, w1d)
+    stats <- ifelse(stats < 0.001, "<0.001", round(stats,3))
+    print(stats)
+    sum_stats[i, c("het_p", "geno_p", "ks_p", "w1d")] <- stats
+  }  
+  print("finished")
+  write.csv(sum_stats, paste("../stats/sum_stats_",i,".csv", sep = ""), row.names = FALSE)
+}
+
+
+##2.----
+# Generate some example data
+set.seed(123)
+data1 <- rnorm(1000, mean = 0, sd = 1)
+data2 <- rnorm(1000, mean = 2, sd = 1)
+
+# Define individual group colors
+color_group1 <- rgb(0, 0, 1, 0.5)  # Blue with alpha channel
+color_group2 <- rgb(1, 0, 0, 0.5)  # Red with alpha channel
+
+# Define overlap color separately
+overlap_color <- rgb(0.5, 0.5, 0.5, 0.5)  # Gray with alpha channel
+
+# Plot overlapping histograms
+hist(data1, col = color_group1,
+     xlim = c(min(data1, data2), max(data1, data2)),
+     ylim = c(0, max(hist(data1, plot = FALSE)$counts, hist(data2, plot = FALSE)$counts)),
+     main = "Overlapping Histograms", xlab = "Value", ylab = "Frequency", border = "white")
+hist(data2, col = color_group2,
+     add = TRUE, border = "white")
+
+# Add a legend
+legend("topright", legend = c("Group 1", "Group 2", "Overlap (Group1+Group2)"),
+       fill = c(color_group1, color_group2, overlap_color))
+
+# Improve readability
+grid(col = "lightgray", lty = "dotted")
+
+
+
+##3.----
+#LD decay
 #keep Locus/Marker, Position and LG/Chromosome
-map <- map[,c("Marker", "Map.cM.", "Chromosome")]
+ld_map <- genmap[,c("Marker", "Map.cM.", "Chromosome")]
 colnames(map) <- c("Locus","Position","LG")
 
 plot_LD_decay <- function(est, title){

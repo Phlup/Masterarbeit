@@ -2,6 +2,7 @@ from project_lib.genotype_simulation import *
 
 #usage: Read in genetic map, parental genotypes and reference allele to simulate genotypes of offspring w.r.t. params
 #set in genotype_simulation()
+#simulates all reference pop offspring genotypes and saves ref pop as additive encoding
 
 if __name__ == '__main__':
     # read genetic map
@@ -44,30 +45,35 @@ if __name__ == '__main__':
         high_sim = genotype_simulation(genetic_map=genmap_high, parent_genos=parent_genos, ref_allele=ref_allele,
                                         founder_list=pop, offspring=size_dict[i], selfing_genos=5)
 
-        high_sim.to_csv("sim_output/high_rec/geno_encoding/high_geno_" + str(i) + ".csv", index = False)
+        high_sim.to_csv("sim_output/high_rec/geno_encoding/geno_" + str(i) + ".csv", index = False)
 
         high_add = additive_encoding(ref_allele, high_sim)
 
-        high_add.to_csv("sim_output/high_rec/additive_encoding/high_add_" + str(i) + ".csv", index = False)
+        high_add.to_csv("sim_output/high_rec/additive_encoding/add_" + str(i) + ".csv", index = False)
 
         #zero recombination rate
         zero_sim = genotype_simulation(genetic_map=genmap_zero, parent_genos=parent_genos, ref_allele=ref_allele,
                                         founder_list=pop, offspring=size_dict[i], selfing_genos=5)
 
-        zero_sim.to_csv("sim_output/zero_rec/geno_encoding/zero_geno_" + str(i) + ".csv", index = False)
+        zero_sim.to_csv("sim_output/zero_rec/geno_encoding/geno_" + str(i) + ".csv", index = False)
 
         zero_add = additive_encoding(ref_allele, zero_sim)
 
-        zero_add.to_csv("sim_output/zero_rec/additive_encoding/zero_add_" + str(i) + ".csv", index = False)
+        zero_add.to_csv("sim_output/zero_rec/additive_encoding/add_" + str(i) + ".csv", index = False)
 
         #mean recombination rate
         mean_sim = genotype_simulation(genetic_map=genmap_mean, parent_genos=parent_genos, ref_allele=ref_allele,
                                         founder_list=pop, offspring=size_dict[i], selfing_genos=5)
 
-        mean_sim.to_csv("sim_output/mean_rec/geno_encoding/mean_geno_" + str(i) + ".csv", index = False)
+        mean_sim.to_csv("sim_output/mean_rec/geno_encoding/geno_" + str(i) + ".csv", index = False)
 
         mean_add = additive_encoding(ref_allele, mean_sim)
 
-        mean_add.to_csv("sim_output/mean_rec/additive_encoding/mean_add_" + str(i) + ".csv", index = False)
+        mean_add.to_csv("sim_output/mean_rec/additive_encoding/add_" + str(i) + ".csv", index = False)
         print(f"finished simulating {pop_dict[i+1]} ({i}/{len(pop_dict)})")
 
+    #save all real pop genos as add encoding
+    for i in pops:
+        real_i = pd.read_csv("data/NAM_genotype_data/geno_encoding/pop_" + str(i) + "_genos.csv")
+        add_i = additive_encoding(ref_allele, real_i)
+        add_i.to_csv("data/NAM_genotype_data/additive_encoding/pop_" + str(i) + "_add.csv", index = False)
