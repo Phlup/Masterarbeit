@@ -1,6 +1,7 @@
 library(sommer)
 library(stats)
 library(transport)
+library(effectsize)
 source("stat_functions.R")
 
 ##generate summary statistics for genotype simulation across all populations and recombination scenarios
@@ -15,10 +16,7 @@ source("stat_functions.R")
 #table p threshold + p raw (p adjust?)
 #calc concordance, save table
 
-#2. plotting distributions
-#Histogram/density plot of additive encoding based on reference allele
-
-#3. additional popgen stats
+#2. additional popgen stats
 #linkage disequilibrium decay (r2~d)
 #ks test/density of r2 between sim and real encoding
 #distance measure (e.g. euclidean/rogers distance)
@@ -29,15 +27,19 @@ genmap <- read.csv("../data/sim_data/B73_genmap.csv")
 #read populations
 populations <- read.csv("../data/sim_data/populations.csv")
 
-##1.----
+#LD decay
+#keep Locus/Marker, Position and LG/Chromosome
+ld_map <- genmap[,c("Marker", "Map.cM.", "Chromosome")]
+colnames(ld_map) <- c("Locus","Position","LG")
 #vary over all recombination parameters
 rec_param <- c("normal_rec", "high_rec", "zero_rec", "mean_rec")
 for(i in rec_param){
-  sum_stats <- data.frame("population" = populations$pop, "het_p" = NA, "geno_p" = NA, "ks_p" = NA, "w1d" = NA)
+  sum_stats <- data.frame("population" = populations$pop, "het_p" = NA, "het_phi" = NA, "geno_p" = NA,
+                          "geno_cramersV" = NA, "ks_p" = NA, "w1d" = NA, "ld_ks_p" = NA, "ld_w1d" = NA)
   #vary over all simulated pops
   for(j in populations$pop){
     #read real and sim pop
-    sim_geno <- read.csv(paste("../sim_output/",i,"/geno_encoding/geno_",j,".csv", sep = ""))[-1]
+    sim_geno <- read.csv(paste("../sim_output/",i,"/geno_encoding/geno_",j,".csv", sep = ""))
     real_geno <- read.csv(paste("../data/NAM_genotype_data/geno_encoding/pop_",j,"_genos.csv", sep = ""))
     sim_add <- read.csv(paste("../sim_output/",i,"/additive_encoding/add_",j,".csv", sep = ""))
     real_add <- read.csv(paste("../data/NAM_genotype_data/additive_encoding/pop_",j,"_add.csv", sep = ""))
@@ -48,12 +50,9 @@ for(i in rec_param){
     sim_add <- sim_add[,genmap$Marker]
     real_add <- real_add[,genmap$Marker]
     
-    #tabulate entire df
-    table(unlist(sim_geno))
-    table(unlist(real_geno))
-    
+    ##1. dist stats
     #calculate # of het
-    sample <- sample(c(1:194), 10)
+    sample <- sample(c(1:populations[populations$pop == j, "size"]), 20)
     het_mat <- as.matrix(cbind(table(unlist(sim_add[sample,]) == 0), table(unlist(real_add[sample,]) == 0)))
     
     #calc # of all genos
@@ -63,110 +62,84 @@ for(i in rec_param){
     
     #chisq.tests
     het_p <- chisq.test(het_mat)$p.value
+    het_phi <- phi(het_mat)$phi_adjusted
     geno_p <- chisq.test(geno_mat)$p.value
+    geno_cramersv <- cramers_v(geno_mat)$Cramers_v_adjusted
     #ks test
     ks_p <- ks.test(rowSums(sim_add), rowSums(real_add))$p.value
     #wasserstein dist
     w1d <- wasserstein1d(rowSums(sim_add), rowSums(real_add))
     
-    stats <- c(het_p, geno_p, ks_p, w1d)
-    stats <- ifelse(stats < 0.001, "<0.001", round(stats,3))
-    print(stats)
-    sum_stats[i, c("het_p", "geno_p", "ks_p", "w1d")] <- stats
+    ##2. popgen stats
+    sim_ld <- LD.decay(sim_add, ld_map)
+    sim_ld$all.LG <- sim_ld$all.LG[(sim_ld$all.LG$p < .001),]
+    sim_r2_D <- sim_ld$all.LG[c("r2", "d")]
+    
+    real_ld <- LD.decay(real_add, ld_map)
+    real_ld$all.LG <- real_ld$all.LG[(real_ld$all.LG$p < .001),]
+    real_ld$all.LG <- real_ld$all.LG[(real_ld$all.LG$r2 < .99),]
+    real_r2_D <- real_ld$all.LG[c("r2", "d")]
+
+    #ks test + w1d on r2 measure
+    ld_ks_p <- ks.test(sim_r2_D$r2, real_r2_D$r2)$p.value
+    ld_w1d <- wasserstein1d(sim_r2_D$r2, real_r2_D$r2)
+    
+    plot_ld_decay(real_r2_D, sim_r2_D, round(ld_ks_p,3), round(ld_w1d,2),
+                  out_path = paste("../plots/popgen_plots/LD_decay/",i,"/ld_decay_",j,".png", sep = ""))
+    
+    #format sumstats
+    p_vals <- c(het_p, geno_p, ks_p, ld_ks_p)
+    p_vals <- ifelse(p_vals < 0.001, "<0.001", round(p_vals,3))
+    effects <- round(c(het_phi, geno_cramersv, w1d, ld_w1d),2)
+    
+    stats <- c(p_vals[1], effects[1], p_vals[2], effects[2], p_vals[3], effects[3], p_vals[4], effects[4])
+    sum_stats[sum_stats$population == j, c("het_p", "het_phi", "geno_p", "geno_cramersV", "ks_p", "w1d",
+                                           "ld_ks_p", "ld_w1d")] <- stats
+    
   }  
   print("finished")
   write.csv(sum_stats, paste("../stats/sum_stats_",i,".csv", sep = ""), row.names = FALSE)
 }
 
+#read in sum stats to compare rec scenarios
+sum_results <- data.frame("rec_param" = c("normal_rec", "high_rec", "zero_rec", "mean_rec"),
+                          "het_sig" = NA, "mean_sd_phi" = NA, "geno_sig" = NA, "mean_sd_cramersV" = NA,
+                          "ks_sig" = NA, "mean_sd_w1d" = NA, "ld_ks_sig" = NA, "mean_sd_ld_w1d" = NA)
+for(i in rec_param){
+  sum_stats <- read.csv(paste("../stats/sum_stats_",i,".csv", sep = ""))
+  het_sig <- paste(table(sum_stats$het_p == "<0.001")[["TRUE"]],"/",
+                   sum(table(sum_stats$het_p)), sep = "")
+  het_phi <- paste("median: ", median(sum_stats$het_phi), ", IQR: ", IQR(sum_stats$het_phi),
+                   ", mean: ", signif(mean(sum_stats$het_phi),3),
+                   " ± ", signif(sd(sum_stats$het_phi),3), sep = "")
+  geno_sig <- paste(table(sum_stats$geno_p == "<0.001")[["TRUE"]],"/",
+                   sum(table(sum_stats$geno_p)), sep = "")
+  geno_cramersV <- paste("median: ", median(sum_stats$geno_cramersV), ", IQR: ", IQR(sum_stats$geno_cramersV),
+                   ", mean: ", signif(mean(sum_stats$geno_cramersV),3),
+                   " ± ", signif(sd(sum_stats$geno_cramersV),3), sep = "")
+  ks_sig <- paste(table(sum_stats$ks_p == "<0.001")[["TRUE"]],"/",
+                  sum(table(sum_stats$ks_p)), sep = "")
+  w1d <- paste("median: ", median(sum_stats$w1d), ", IQR: ", IQR(sum_stats$w1d),
+                   ", mean: ", signif(mean(sum_stats$w1d),3),
+                   " ± ", signif(sd(sum_stats$w1d),3), sep = "")
+  ld_ks_sig <- paste(table(sum_stats$ld_ks_p == "<0.001")[["TRUE"]],"/",
+                  sum(table(sum_stats$ld_ks_p)), sep = "")
+  ld_w1d <- paste("median: ", median(sum_stats$ld_w1d), ", IQR: ", IQR(sum_stats$ld_w1d),
+                  ", mean: ", signif(mean(sum_stats$ld_w1d),3),
+                  " ± ", signif(sd(sum_stats$ld_w1d),3), sep = "")
+  results <- c(het_sig, het_phi, geno_sig, geno_cramersV, ks_sig, w1d, ld_ks_sig, ld_w1d)
+  sum_results[sum_results$rec_param == i, c("het_sig", "mean_sd_phi", "geno_sig", "mean_sd_cramersV",
+                                            "ks_sig", "mean_sd_w1d", "ld_ks_sig", "mean_sd_ld_w1d")] <- results
+}
+
 
 ##2.----
-# Generate some example data
-set.seed(123)
-data1 <- rnorm(1000, mean = 0, sd = 1)
-data2 <- rnorm(1000, mean = 2, sd = 1)
-
-# Define individual group colors
-color_group1 <- rgb(0, 0, 1, 0.5)  # Blue with alpha channel
-color_group2 <- rgb(1, 0, 0, 0.5)  # Red with alpha channel
-
-# Define overlap color separately
-overlap_color <- rgb(0.5, 0.5, 0.5, 0.5)  # Gray with alpha channel
-
-# Plot overlapping histograms
-hist(data1, col = color_group1,
-     xlim = c(min(data1, data2), max(data1, data2)),
-     ylim = c(0, max(hist(data1, plot = FALSE)$counts, hist(data2, plot = FALSE)$counts)),
-     main = "Overlapping Histograms", xlab = "Value", ylab = "Frequency", border = "white")
-hist(data2, col = color_group2,
-     add = TRUE, border = "white")
-
-# Add a legend
-legend("topright", legend = c("Group 1", "Group 2", "Overlap (Group1+Group2)"),
-       fill = c(color_group1, color_group2, overlap_color))
-
-# Improve readability
-grid(col = "lightgray", lty = "dotted")
-
-
-
-##3.----
 #LD decay
 #keep Locus/Marker, Position and LG/Chromosome
 ld_map <- genmap[,c("Marker", "Map.cM.", "Chromosome")]
-colnames(map) <- c("Locus","Position","LG")
+colnames(ld_map) <- c("Locus","Position","LG")
 
-plot_LD_decay <- function(est, title){
-  with(est$all.LG, plot(r2~d,col=transp("cadetblue"),
-                        xlim=c(0,55), ylim=c(0,1), 
-                        pch=20,cex=0.5,ylab=expression(r^2),
-                        xlab="Distance in cM",main=title)
-  )
-}
-
-#LD decay with recombination
-whole_add <- read.csv("../sim_output/additive_encoding/geno_B73_B97.csv")
-whole_add <- whole_add[-1]
-
-res_rec <- LD.decay(whole_add, map)
-res_rec$all.LG <- res_rec$all.LG[(res_rec$all.LG$p < .001),]
-plot_LD_decay(res_rec, "R2~D in recombination simulation")
-
-#LD decay without recombination
-#no_add <- read.csv("../data/sim_output/no_add.csv")
-#no_add <- no_add[-1]
-#
-#res_norec <- LD.decay(no_add, map)
-#res_norec$all.LG <- res_norec$all.LG[(res_norec$all.LG$p < .001),]
-#plot_LD_decay(res_norec)
-
-#LD decay in real population
-add_1 <- read.csv("../data/test_data/additive_1.csv")
-add_1 <- add_1[-1]
-
-res_pop1 <- LD.decay(add_1, map)
-res_pop1$all.LG <- res_pop1$all.LG[(res_pop1$all.LG$p < .001),]
-plot_LD_decay(res_pop1, "R2~D in real population")
-par(mfrow=c(1,2))
-#density plot of r2 of sim and real pop
-plot(density(res_rec[["all.LG"]][["r2"]]))
-plot(density(res_pop1[["all.LG"]][["r2"]]))
-
-
-#ks test on simulated and real pop
-ks.test(res_rec[["all.LG"]][["r2"]], res_pop1[["all.LG"]][["r2"]])
-#large sample detects small divergence in distribution
-
-#ks test on simulated and real pop
-ks.test(sample(res_rec[["all.LG"]][["r2"]], 1000), sample(res_pop1[["all.LG"]][["r2"]]), 1000)
-#smaller sample non-significant for alpha = 0.05
-plot(density(sample(res_rec[["all.LG"]][["r2"]], 1000)))
-plot(density(sample(res_pop1[["all.LG"]][["r2"]], 1000)))
-
-
-#density of no rec and ks test between rec and no rec
-#plot(density(res_norec[["all.LG"]][["r2"]]))
-#ks.test(sample(res_rec[["all.LG"]][["r2"]], 100), sample(res_norec[["all.LG"]][["r2"]]), 100)
-
+#ld decay of nam parents
 
 #distance measure (e.g. euclidian distance/rogers distance)
 par(mfrow=c(1,2))

@@ -3,6 +3,8 @@ library(MASS)
 library(crayon)
 library(sommer)
 
+##model comparison similar to john et al comparison of classical and ml methods 2022
+##-> similar model ranking? + overall accuracy as two outcomes
 #load data (pre-saved in the sommer package)
 data(DT_wheat) 
 

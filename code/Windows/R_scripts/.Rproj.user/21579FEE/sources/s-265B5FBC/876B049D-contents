@@ -1,0 +1,70 @@
+library(ggplot2)
+#implemented here are functions used to generate the validation stats in validation_stats.R (helps declutter script)
+#ld decay plot, nucleotide diversity
+
+#ld decay plot
+plot_ld_decay <- function(real, sim, ks_p, w1d, out_path){
+  plot <- ggplot() +
+    geom_point(data = real, aes(d, r2, color = "Real genotypes"), size = 1.5, alpha = 0.05) +
+    geom_point(data = sim, aes(d, r2, color = "Simulated genotypes"), size = 1.5, alpha = 0.05) +
+    geom_smooth(data = real, aes(d, r2), method = "loess", se = FALSE, color = "darkblue", span = 0.2) +
+    geom_smooth(data = sim, aes(d, r2), method = "loess", se = FALSE, color = "darkorange", span = 0.2) +
+    theme_minimal() +
+    labs(title = "LD decay of real and simulated genotypes for population i", x = "Distance in cM", y = expression(r^2)) +
+    theme(plot.title = element_text(hjust = 0.5),
+          legend.box.background = element_rect(color = "grey", linewidth = 1),
+          legend.background = element_rect(fill = "white", color = NA),
+          legend.position = c(0.85,0.85)) +
+    scale_color_manual(name = NULL, values = c("Real genotypes" = "blue", "Simulated genotypes" = "orange"),
+                       guide = guide_legend(override.aes = list(alpha = 0.7))) +
+    annotate("text", x = 90, y = 0.75, label = paste("KS Test P-Value: ", ks_p),
+             size = 3, color = "black") +
+    annotate("text", x = 90, y = 0.65, label = paste("Wasserstein Distance: ", w1d),
+             size = 3, color = "black")
+  
+  ggsave(out_path, plot, dpi = 300, width = 8, height = 6, units = "in", device = "png", bg = "white")
+}
+
+#nucleotide diversity functions----
+#combine pw diff and nuc div
+calculate_pairwise_differences <- function(sequences) {
+  num_sequences <- length(sequences)
+  pairwise_diff <- numeric(choose(num_sequences, 2))  # Initialize vector to store pairwise differences
+  
+  # Iterate over all pairs of sequences
+  k <- 1
+  for (i in 1:(num_sequences - 1)) {
+    for (j in (i + 1):num_sequences) {
+      # Compare nucleotide positions and count differences
+      differences <- sum(unlist(strsplit(sequences[[i]], split = "")) != unlist(strsplit(sequences[[j]], split = "")))
+      pairwise_diff[k] <- differences
+      k <- k + 1
+    }
+  }
+  pairwise_diff <- pairwise_diff/length(unlist(strsplit(sequences[[1]], split = "")))
+  return(pairwise_diff)
+}
+
+
+sequences <- list("GGGG", "ATGG", "ATCC", "AACC")
+
+# Calculate pairwise differences
+pairwise_differences <- calculate_pairwise_differences(sequences)
+
+pairwise_differences
+
+# Function to calculate nucleotide diversity estimator
+calculate_nucleotide_diversity <- function(frequencies, pairwise_differences, n) {
+  # Ensure lengths of input vectors match
+  if (length(frequencies) != n || length(pairwise_differences) != choose(n, 2)) {
+    stop("Input vector lengths do not match the specified number of sequences.")
+  }
+  
+  # Calculate nucleotide diversity
+  pi_hat <- (n/(n-1)) * sum(outer(frequencies, frequencies, "*") * pairwise_differences)
+  
+  return(pi_hat)
+}
+
+
+

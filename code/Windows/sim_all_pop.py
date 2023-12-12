@@ -70,7 +70,7 @@ if __name__ == '__main__':
         mean_add = additive_encoding(ref_allele, mean_sim)
 
         mean_add.to_csv("sim_output/mean_rec/additive_encoding/add_" + str(i) + ".csv", index = False)
-        print(f"finished simulating {pop_dict[i+1]} ({i}/{len(pop_dict)})")
+        print(f"finished simulating {pop_dict[i]} ({i}/{len(pop_dict)})")
 
     #save all real pop genos as add encoding
     for i in pops:
