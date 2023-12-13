@@ -2,6 +2,7 @@ library(sommer)
 library(stats)
 library(transport)
 library(effectsize)
+library(adegenet)
 source("stat_functions.R")
 
 ##generate summary statistics for genotype simulation across all populations and recombination scenarios
@@ -12,15 +13,13 @@ source("stat_functions.R")
 #Table of simulated alleles in diploid gene sequence format
 #Heterozygous/reference/derived alleles
 #chisq test between tables (hetero+all)
-#ks test for dist diff
-#table p threshold + p raw (p adjust?)
-#calc concordance, save table
+#ks test + wasserstein distance for dist diff
+#gc content distribution across all individuals+sites
 
 #2. additional popgen stats
 #linkage disequilibrium decay (r2~d)
 #ks test/density of r2 between sim and real encoding
 #distance measure (e.g. euclidean/rogers distance)
-#nucleotide diversity
 
 #read genmap to constrain markers/calc ld decay etc.
 genmap <- read.csv("../data/sim_data/B73_genmap.csv")
@@ -35,7 +34,8 @@ colnames(ld_map) <- c("Locus","Position","LG")
 rec_param <- c("normal_rec", "high_rec", "zero_rec", "mean_rec")
 for(i in rec_param){
   sum_stats <- data.frame("population" = populations$pop, "het_p" = NA, "het_phi" = NA, "geno_p" = NA,
-                          "geno_cramersV" = NA, "ks_p" = NA, "w1d" = NA, "ld_ks_p" = NA, "ld_w1d" = NA)
+                          "geno_cramersV" = NA, "ks_p" = NA, "w1d" = NA, "ld_ks_p" = NA, "ld_w1d" = NA,
+                          "gc_p" = NA, "gc_cohens" = NA)
   #vary over all simulated pops
   for(j in populations$pop){
     #read real and sim pop
@@ -70,6 +70,15 @@ for(i in rec_param){
     #wasserstein dist
     w1d <- wasserstein1d(rowSums(sim_add), rowSums(real_add))
     
+    #gc content
+    haplo_mat_s <- cbind(apply(sim_geno,2,substr,1,1), apply(sim_geno,2,substr,2,2))
+    gc_vec_s <- apply(haplo_mat_s, 1, GC_cont)
+    haplo_mat_r <- cbind(apply(real_geno,2,substr,1,1), apply(real_geno,2,substr,2,2))
+    gc_vec_r <- apply(haplo_mat_r, 1, GC_cont)
+    
+    gc_p <- t.test(gc_vec_s, gc_vec_r)$p.value
+    gc_cohens <- cohens_d(gc_vec_s, gc_vec_r)$Cohens_d
+    
     ##2. popgen stats
     sim_ld <- LD.decay(sim_add, ld_map)
     sim_ld$all.LG <- sim_ld$all.LG[(sim_ld$all.LG$p < .001),]
@@ -84,17 +93,18 @@ for(i in rec_param){
     ld_ks_p <- ks.test(sim_r2_D$r2, real_r2_D$r2)$p.value
     ld_w1d <- wasserstein1d(sim_r2_D$r2, real_r2_D$r2)
     
-    plot_ld_decay(real_r2_D, sim_r2_D, round(ld_ks_p,3), round(ld_w1d,2),
-                  out_path = paste("../plots/popgen_plots/LD_decay/",i,"/ld_decay_",j,".png", sep = ""))
+    #plot_ld_decay(real_r2_D, sim_r2_D, round(ld_ks_p,3), round(ld_w1d,2),
+    #              out_path = paste("../plots/popgen_plots/LD_decay/",i,"/ld_decay_",j,".png", sep = ""))
     
     #format sumstats
-    p_vals <- c(het_p, geno_p, ks_p, ld_ks_p)
+    p_vals <- c(het_p, geno_p, ks_p, ld_ks_p, gc_p)
     p_vals <- ifelse(p_vals < 0.001, "<0.001", round(p_vals,3))
-    effects <- round(c(het_phi, geno_cramersv, w1d, ld_w1d),2)
+    effects <- round(c(het_phi, geno_cramersv, w1d, ld_w1d, gc_cohens),2)
     
-    stats <- c(p_vals[1], effects[1], p_vals[2], effects[2], p_vals[3], effects[3], p_vals[4], effects[4])
+    stats <- c(p_vals[1], effects[1], p_vals[2], effects[2], p_vals[3], effects[3], p_vals[4], effects[4],
+               p_vals[5], effects[5])
     sum_stats[sum_stats$population == j, c("het_p", "het_phi", "geno_p", "geno_cramersV", "ks_p", "w1d",
-                                           "ld_ks_p", "ld_w1d")] <- stats
+                                           "ld_ks_p", "ld_w1d", "gc_p", "gc_cohens")] <- stats
     
   }  
   print("finished")
@@ -104,7 +114,8 @@ for(i in rec_param){
 #read in sum stats to compare rec scenarios
 sum_results <- data.frame("rec_param" = c("normal_rec", "high_rec", "zero_rec", "mean_rec"),
                           "het_sig" = NA, "mean_sd_phi" = NA, "geno_sig" = NA, "mean_sd_cramersV" = NA,
-                          "ks_sig" = NA, "mean_sd_w1d" = NA, "ld_ks_sig" = NA, "mean_sd_ld_w1d" = NA)
+                          "ks_sig" = NA, "mean_sd_w1d" = NA, "ld_ks_sig" = NA, "mean_sd_ld_w1d" = NA,
+                          "gc_sig" = NA, "mean_sd_gc" = NA)
 for(i in rec_param){
   sum_stats <- read.csv(paste("../stats/sum_stats_",i,".csv", sep = ""))
   het_sig <- paste(table(sum_stats$het_p == "<0.001")[["TRUE"]],"/",
@@ -127,49 +138,38 @@ for(i in rec_param){
   ld_w1d <- paste("median: ", median(sum_stats$ld_w1d), ", IQR: ", IQR(sum_stats$ld_w1d),
                   ", mean: ", signif(mean(sum_stats$ld_w1d),3),
                   " ± ", signif(sd(sum_stats$ld_w1d),3), sep = "")
-  results <- c(het_sig, het_phi, geno_sig, geno_cramersV, ks_sig, w1d, ld_ks_sig, ld_w1d)
+  gc_sig <- paste(table(sum_stats$gc_p == "<0.001")[["TRUE"]],"/",
+                     sum(table(sum_stats$gc_p)), sep = "")
+  gc_cohens <- paste("median: ", median(sum_stats$gc_cohens), ", IQR: ", IQR(sum_stats$gc_cohens),
+                  ", mean: ", signif(mean(sum_stats$gc_cohens),3),
+                  " ± ", signif(sd(sum_stats$gc_cohens),3), sep = "")
+  results <- c(het_sig, het_phi, geno_sig, geno_cramersV, ks_sig, w1d, ld_ks_sig, ld_w1d, gc_sig, gc_cohens)
   sum_results[sum_results$rec_param == i, c("het_sig", "mean_sd_phi", "geno_sig", "mean_sd_cramersV",
-                                            "ks_sig", "mean_sd_w1d", "ld_ks_sig", "mean_sd_ld_w1d")] <- results
+                                            "ks_sig", "mean_sd_w1d", "ld_ks_sig", "mean_sd_ld_w1d",
+                                            "gc_sig", "mean_sd_gc")] <- results
 }
-
+write.csv(sum_results, "../stats/sum_results.csv", row.names = FALSE)
 
 ##2.----
-#LD decay
-#keep Locus/Marker, Position and LG/Chromosome
-ld_map <- genmap[,c("Marker", "Map.cM.", "Chromosome")]
-colnames(ld_map) <- c("Locus","Position","LG")
-
-#ld decay of nam parents
-
 #distance measure (e.g. euclidian distance/rogers distance)
+# Create a matrix of genetic marker data (replace this with your actual data)
+genotype_matrix <- matrix(c(0, 1, 2, 2, 1, 0, 0, 2, 1), ncol = 3, byrow = TRUE)
+
+# Convert the matrix to a genind object
+genind_object <- df2genind(data.frame(genotype_matrix), sep = "")
+
+# Calculate Rogers' genetic distance
+rogers_distance <- dist.genpop(genind_object, method = "rogers")
+
+# Print the resulting distance matrix
+print(rogers_distance)
+
+colnames(sim_add) <- c(1:974)
+genind <- df2genind(sim_add, sep = "")
+dist_sim <- dist.genpop(as.genpop(genind$tab), method = 4)
+colnames(real_add) <- c(1:974)
+genind <- df2genind(real_add, sep = "")
+dist_real <- dist.genpop(as.genpop(genind$tab), method = 4)
 par(mfrow=c(1,2))
-boxplot(dist(whole_add, method = "manhattan"), main = "Euclidean distance of additive encoding simulated population", ylim=c(200,1200))
-boxplot(dist(add_1, method = "manhattan"), main = "Euclidean distance of additive encoding real population", ylim=c(200,1200))
-
-#nucleotide diversity (overall and across sites)
-rec_geno <- read.csv("../data/sim_output/whole_sim.csv")
-rec_geno <- rec_geno[-c(1,2)]
-rec_list <- apply(rec_geno, 1, function(row) paste(row, collapse = ""))
-rec_list <- as.list(rec_list)
-
-#sequence frequency?
-duplicated(rec_geno)
-#all dissimilar
-seq_freq <- rep(1/194, 194)
-rec_pd <- calculate_pairwise_differences(rec_list)
-calculate_nucleotide_diversity(seq_freq, rec_pd, 194)
-
-pop_1_geno <- read.csv("../data/test_data/pop_1_genos.csv")
-pop_1_geno <- pop_1_geno[-1]
-
-pop_1_list <- apply(pop_1_geno, 1, function(row) paste(row, collapse = ""))
-pop_1_list <- as.list(pop_1_list)
-
-#sequence frequency?
-duplicated(pop_1_geno)
-#all dissimilar
-seq_freq <- rep(1/194, 194)
-pop_1_pd <- calculate_pairwise_differences(pop_1_list)
-calculate_nucleotide_diversity(seq_freq, pop_1_pd, 194)
-
-
+boxplot(dist_sim, main = "Rogers distance of additive encoding simulated population", ylim=c(0.1,0.4))
+boxplot(dist_real, main = "Rogers distance of additive encoding real population", ylim=c(0.1,0.4))

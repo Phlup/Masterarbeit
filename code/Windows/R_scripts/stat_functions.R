@@ -1,6 +1,6 @@
 library(ggplot2)
 #implemented here are functions used to generate the validation stats in validation_stats.R (helps declutter script)
-#ld decay plot, nucleotide diversity
+#ld decay plot, GC content
 
 #ld decay plot
 plot_ld_decay <- function(real, sim, ks_p, w1d, out_path){
@@ -25,46 +25,8 @@ plot_ld_decay <- function(real, sim, ks_p, w1d, out_path){
   ggsave(out_path, plot, dpi = 300, width = 8, height = 6, units = "in", device = "png", bg = "white")
 }
 
-#nucleotide diversity functions----
-#combine pw diff and nuc div
-calculate_pairwise_differences <- function(sequences) {
-  num_sequences <- length(sequences)
-  pairwise_diff <- numeric(choose(num_sequences, 2))  # Initialize vector to store pairwise differences
-  
-  # Iterate over all pairs of sequences
-  k <- 1
-  for (i in 1:(num_sequences - 1)) {
-    for (j in (i + 1):num_sequences) {
-      # Compare nucleotide positions and count differences
-      differences <- sum(unlist(strsplit(sequences[[i]], split = "")) != unlist(strsplit(sequences[[j]], split = "")))
-      pairwise_diff[k] <- differences
-      k <- k + 1
-    }
-  }
-  pairwise_diff <- pairwise_diff/length(unlist(strsplit(sequences[[1]], split = "")))
-  return(pairwise_diff)
+#calculate gc content in vector of chars
+GC_cont <- function(seq_vec) {
+  GC_count <- sum(seq_vec %in% c("G", "C"))
+  return(GC_count/length(seq_vec))
 }
-
-
-sequences <- list("GGGG", "ATGG", "ATCC", "AACC")
-
-# Calculate pairwise differences
-pairwise_differences <- calculate_pairwise_differences(sequences)
-
-pairwise_differences
-
-# Function to calculate nucleotide diversity estimator
-calculate_nucleotide_diversity <- function(frequencies, pairwise_differences, n) {
-  # Ensure lengths of input vectors match
-  if (length(frequencies) != n || length(pairwise_differences) != choose(n, 2)) {
-    stop("Input vector lengths do not match the specified number of sequences.")
-  }
-  
-  # Calculate nucleotide diversity
-  pi_hat <- (n/(n-1)) * sum(outer(frequencies, frequencies, "*") * pairwise_differences)
-  
-  return(pi_hat)
-}
-
-
-
