@@ -26,3 +26,11 @@ Selfing statistics in pedigree
 7. Finished
 
 Submit sometime mid February
+
+
+Coding todo:
+selfing with fraction
+finish geno validation stats
+implement ggblup/rblup for simulated genos
+implement cnn/rf -> feature importance?
+implement model ranking, compare with real study

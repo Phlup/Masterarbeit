@@ -1,0 +1,26 @@
+{
+    "id": "F5775F9B",
+    "path": "C:/Users/PHLUP/Masterarbeit/R_scripts/validation_stats.R",
+    "project_path": "validation_stats.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1701342129763.0,
+    "source_on_save": false,
+    "relative_order": 6,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "125,4",
+        "scrollLine": "98"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1702974389,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1702974389185,
+    "read_only": false,
+    "read_only_alternatives": []
+}
