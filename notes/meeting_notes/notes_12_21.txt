@@ -1,0 +1,30 @@
+genomewide effects: trainings/test aufteilen
+-> effects passen? testdaten mit in trainingsdaten
+
+genomewide effects für parent crosses
+-> parents cumsum und offspring cumsum
+-> verteilung offspring um parents
+-> extreme verteilung simulierte daten
+-> rolling correlation
+-> negative correlation für größere outlier
+
+haplotyplänge -> wie lang im mittel bis zum anderen -> summary statistic
+oder anzahl rekombinationsereignisse/genomlänge
+-> breeding scheme einfluss auf rekombinationsmuster
+
+genomewide effects ground truth mit real data
+-> in simulated data
+-> verteilung in simulation übereinstimmend mit echten daten
+
+predict mean of crosses of parents
+-> features? mean trait value?
+-> target? mean? 5%/10% quantil?
+-> so viel offspring simulieren bis wert stabil ist
+-> keine stochastizität vorhersagen
+-> korrelationsfenster
+-> recombination map
+rf and cnn 4 (2 correlation, 2 recombination)xN über parents + genetic marker effects
+parents-> entweder gleich/ungleich
+
+vortragstermin wann? -> schmid schreiben
+21/22/23 Februar?
