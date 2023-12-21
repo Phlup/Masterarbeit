@@ -3,8 +3,8 @@ library(MASS)
 library(crayon)
 library(sommer)
 
-##model comparison similar to john et al comparison of classical and ml methods 2022
-##-> similar model ranking? + overall accuracy + feature usage for prediction as three outcomes
+####################### estimate phenotypes from genotyping data ############################
+
 #load data (pre-saved in the sommer package)
 data(DT_wheat) 
 
@@ -50,14 +50,22 @@ cor.test(y, x, method = "pearson")
 plot(y ~ x, xlab="Observed values", ylab="Predicted values")
 abline(lm(y ~ x), col = "blue")
 
+####################### estimate markers effects ############################
 
+##run rrBLUP
+model2 <- mmer(trait_1 ~ 1, random = ~vsr(list(GT_wheat)), rcov=~units, data = DT_wheat, verbose = FALSE)
 
-##rrblup for marker effects -> sum up marker effects for total trait value and compare mean trait value of best
-##performing cross with best performing real pop or do mse etc.
+#get marker effects
+mrk_effects <-  model2$U$`u:GT_wheat`$trait_1
 
-##gblup for genotype effects -> what do genotype effects imply
-##xgboost feature importance: small number of always important features? ifnot, might not be usfeul
-##cnn window approach: conserved/consistently important regions for features? ifnot, might not be useful
-#-> can further information about breeding be gained from snp importance? if not, choose best performing model
-#discussion
+#to calculate the phenotypic value of a samples then:
+sample_values<-unlist(lapply(genotypes_to_predict, function(x){sum(mrk_effects*GT_wheat[x,])}))
+
+#the reconstructed phenotypic values with marker effects from rrBLUP 
+#and the model estimated phenotypic values with gBLUP should be equal
+cor.test(sample_values, y, method = "pearson")
+
+plot(sample_values ~ y, xlab="rrBLUP predicted values", ylab="gBLUP predicted values")
+abline(lm(sample_values ~ y), col = "blue")
+
 

@@ -44,22 +44,3 @@ GC_cont <- function(seq_vec) {
   GC_count <- sum(seq_vec %in% c("G", "C"))
   return(GC_count/length(seq_vec))
 }
-
-set.seed(123)
-data <- data.frame(
-  Group = rep(c("Group A", "Group B"), each = 50),
-  Value = c(rnorm(50, mean = 10, sd = 2), rnorm(50, mean = 12, sd = 2))
-)
-
-# Create a boxplot with ggplot2
-p <- ggplot(data, aes(x = Group, y = Value, fill = Group)) +
-  geom_boxplot() +
-  theme_minimal()
-
-# Add significance test p-value
-p <- p + stat_compare_means(method = "t.test", label = "p.format", 
-                            aes(label = paste("p = ", signif(..p.format.., digits = 2))),
-                            box.width = 0.4)
-
-# Show the plot
-print(p)

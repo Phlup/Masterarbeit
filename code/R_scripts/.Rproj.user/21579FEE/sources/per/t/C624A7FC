@@ -1,0 +1,26 @@
+{
+    "id": "C624A7FC",
+    "path": "C:/Users/PHLUP/Masterarbeit/R_scripts/Example_of_genomic_prediction_with_gBLUP.R",
+    "project_path": "Example_of_genomic_prediction_with_gBLUP.R",
+    "type": "r_source",
+    "hash": "3658867378",
+    "contents": "",
+    "dirty": false,
+    "created": 1703088184522.0,
+    "source_on_save": false,
+    "relative_order": 6,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "13,52",
+        "scrollLine": "0"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1703000936,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1703000936,
+    "read_only": false,
+    "read_only_alternatives": []
+}

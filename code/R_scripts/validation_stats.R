@@ -110,7 +110,8 @@ for(i in rec_param){
     plot_rogers_dist(real = dist_real, sim = dist_sim, 
                      out_path = paste("../plots/popgen_plots/rogers_dist/",i,"/rogers_dist_",j,".png", sep = ""))
     
-    plot_ld_decay(real = real_r2_D, sim = sim_r2_D, ks_p = round(ld_ks_p,3), w1d = round(ld_w1d,2),
+    plot_ld_decay(real = real_r2_D, sim = sim_r2_D, ks_p = ifelse(ld_ks_p < 0.001, "<0.001", round(ld_ks_p,3)),
+                  w1d = round(ld_w1d,2),
                   out_path = paste("../plots/popgen_plots/LD_decay/",i,"/ld_decay_",j,".png", sep = ""))
     
     #format sumstats
