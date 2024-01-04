@@ -311,7 +311,7 @@ def additive_encoding(ref: pd.DataFrame, genotypes: pd.DataFrame) -> pd.DataFram
     return(geno_add)
 
 def genotype_simulation(genetic_map: pd.DataFrame, parent_genos: pd.DataFrame, ref_allele: pd.DataFrame,
-                        founder_list: List[str], offspring: int, selfing_genos: int = 5) -> pd.DataFrame:
+                        founder_list: List[str], offspring: int, selfing_genos: int = 5) -> (pd.DataFrame, List[tskit.TreeSequence]):
     """
     Simulate genotypes based on the given parameters.
 
@@ -325,6 +325,7 @@ def genotype_simulation(genetic_map: pd.DataFrame, parent_genos: pd.DataFrame, r
 
     Returns:
         pd.DataFrame: DataFrame containing simulated genotypes.
+        List[tskit.TreeSequence]: List containing ARGs of the simulated pedigree per chromosome.
     """
     #get founder nodes
     founder_nodes = get_founder_nodes(parent_genos, founder_list)
@@ -334,6 +335,8 @@ def genotype_simulation(genetic_map: pd.DataFrame, parent_genos: pd.DataFrame, r
     pedigree = cross_selfing_ped(offspring = offspring, selfing_genos = selfing_genos)
     #init final genotypes dataframe
     genotypes = pd.DataFrame({"individual": pedigree.loc[pedigree["time"] == 0, "id"]})
+    #init final ARG list
+    ARGs = list()
     #loop over each chromosome, append results (treats chromosomes entirely independent)
     #possible to parallelise due to independence of tasks
     print("starting simulation")
@@ -354,8 +357,10 @@ def genotype_simulation(genetic_map: pd.DataFrame, parent_genos: pd.DataFrame, r
         chr_genotypes = join_nodes(chr_arg, chr_geno_sim)
         #merge chr_i genotypes to final genotypes
         genotypes = pd.merge(genotypes, chr_genotypes, on = "individual", how = "inner")
+        #append ARG to arg list
+        ARGs.append(chr_arg)
         print(f"finished chromsome {i}")
-    #recode final genotypes to additive encoding according to reference alleles
-    #genotypes_additive = additive_encoding(ref_allele, genotypes)
 
-    return(genotypes)
+    
+
+    return(genotypes, ARGs)

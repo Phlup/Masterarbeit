@@ -52,6 +52,24 @@ def draw_ancestry(ts: tskit.TreeSequence, x_size: int = 3000, y_size: int = 400)
     node_labels = {node.id: f"{node.individual}({node.id})" for node in ts.nodes()}
     SVG(ts.draw_svg(y_axis=True,  node_labels=node_labels, size=(x_size,y_size)))
 
+#calculate recombination tract means and events
+def calc_mean_recomb(arg: tskit.TreeSequence) -> tuple:
+    """
+    Calculates mean recombination tract length and mean number of recombination events per individual
+    in simulated pedigree offspring 
+
+    Parameters:
+        arg (tskit.TreeSequence): TreeSequence object obtained from msprime.sim_ancestry.
+
+    Returns:
+        tuple: mean recombination tract length and mean number of recombination events per individual
+    """
+
+    recomb_tracts = pd.DataFrame({"length": abs(arg.edges_left-arg.edges_right), "child": arg.edges_child})
+    offspring = list(set(arg.edges_child) - set(arg.edges_parent))
+    recomb_tracts = recomb_tracts.loc[recomb_tracts["child"].isin(offspring),]
+    return recomb_tracts["length"].mean(), recomb_tracts["length"].count()/len(offspring)
+
 #calculate allele frequencies
 def calc_allele_freq(matrix: List[List[int]], alleles: int = 3) -> List[float]:
     """
