@@ -28,6 +28,9 @@ if __name__ == '__main__':
     genmap_mean = genmap.copy()
     genmap_mean["Rate(cM/Mb)"] = genmap["Rate(cM/Mb)"].mean()
 
+    recomb_stats = pd.DataFrame({"pop": range(0, 12), "mean_norm": None, "num_norm": None, "mean_high": None, "num_high": None,
+         "mean_zero": None, "num_zero": None, "mean_mean": None, "num_mean": None})
+
     for i in pops:
         pop = pop_dict[i].split("_")
 
