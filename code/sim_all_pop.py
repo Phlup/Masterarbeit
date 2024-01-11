@@ -1,8 +1,9 @@
 from project_lib.genotype_simulation import *
+from project_lib.stat_functions import *
 
 #usage: Read in genetic map, parental genotypes and reference allele to simulate genotypes of offspring w.r.t. params
 #set in genotype_simulation()
-#simulates all reference pop offspring genotypes and saves ref pop as additive encoding
+#simulates all reference pop offspring genotypes, calculates recombination stats and saves ref pop as additive encoding
 
 if __name__ == '__main__':
     # read genetic map
@@ -28,7 +29,7 @@ if __name__ == '__main__':
     genmap_mean = genmap.copy()
     genmap_mean["Rate(cM/Mb)"] = genmap["Rate(cM/Mb)"].mean()
 
-    recomb_stats = pd.DataFrame({"pop": range(0, 12), "mean_norm": None, "num_norm": None, "mean_high": None, "num_high": None,
+    recomb_stats = pd.DataFrame({"pop": pops, "mean_norm": None, "num_norm": None, "mean_high": None, "num_high": None,
          "mean_zero": None, "num_zero": None, "mean_mean": None, "num_mean": None})
 
     for i in pops:
@@ -38,9 +39,13 @@ if __name__ == '__main__':
         norm_sim = genotype_simulation(genetic_map=genmap, parent_genos=parent_genos, ref_allele=ref_allele,
                                         founder_list=pop, offspring=size_dict[i], selfing_genos=5)
 
-        norm_sim.to_csv("sim_output/normal_rec/geno_encoding/geno_" + str(i) + ".csv", index = False)
+        recomb_stat = calc_total_recomb(norm_sim[1])
+        recomb_stats.loc[recomb_stats["pop"] == i, "mean_norm"] = recomb_stat[0]
+        recomb_stats.loc[recomb_stats["pop"] == i, "num_norm"] = recomb_stat[1]
 
-        norm_add = additive_encoding(ref_allele, norm_sim)
+        norm_sim[0].to_csv("sim_output/normal_rec/geno_encoding/geno_" + str(i) + ".csv", index = False)
+
+        norm_add = additive_encoding(ref_allele, norm_sim[0])
 
         norm_add.to_csv("sim_output/normal_rec/additive_encoding/add_" + str(i) + ".csv", index = False)
 
@@ -48,9 +53,13 @@ if __name__ == '__main__':
         high_sim = genotype_simulation(genetic_map=genmap_high, parent_genos=parent_genos, ref_allele=ref_allele,
                                         founder_list=pop, offspring=size_dict[i], selfing_genos=5)
 
-        high_sim.to_csv("sim_output/high_rec/geno_encoding/geno_" + str(i) + ".csv", index = False)
+        recomb_stat = calc_total_recomb(high_sim[1])
+        recomb_stats.loc[recomb_stats["pop"] == i, "mean_high"] = recomb_stat[0]
+        recomb_stats.loc[recomb_stats["pop"] == i, "num_high"] = recomb_stat[1]
 
-        high_add = additive_encoding(ref_allele, high_sim)
+        high_sim[0].to_csv("sim_output/high_rec/geno_encoding/geno_" + str(i) + ".csv", index = False)
+
+        high_add = additive_encoding(ref_allele, high_sim[0])
 
         high_add.to_csv("sim_output/high_rec/additive_encoding/add_" + str(i) + ".csv", index = False)
 
@@ -58,9 +67,13 @@ if __name__ == '__main__':
         zero_sim = genotype_simulation(genetic_map=genmap_zero, parent_genos=parent_genos, ref_allele=ref_allele,
                                         founder_list=pop, offspring=size_dict[i], selfing_genos=5)
 
-        zero_sim.to_csv("sim_output/zero_rec/geno_encoding/geno_" + str(i) + ".csv", index = False)
+        recomb_stat = calc_total_recomb(high_sim[1])
+        recomb_stats.loc[recomb_stats["pop"] == i, "mean_zero"] = recomb_stat[0]
+        recomb_stats.loc[recomb_stats["pop"] == i, "num_zero"] = recomb_stat[1]
 
-        zero_add = additive_encoding(ref_allele, zero_sim)
+        zero_sim[0].to_csv("sim_output/zero_rec/geno_encoding/geno_" + str(i) + ".csv", index = False)
+
+        zero_add = additive_encoding(ref_allele, zero_sim[0])
 
         zero_add.to_csv("sim_output/zero_rec/additive_encoding/add_" + str(i) + ".csv", index = False)
 
@@ -68,13 +81,19 @@ if __name__ == '__main__':
         mean_sim = genotype_simulation(genetic_map=genmap_mean, parent_genos=parent_genos, ref_allele=ref_allele,
                                         founder_list=pop, offspring=size_dict[i], selfing_genos=5)
 
-        mean_sim.to_csv("sim_output/mean_rec/geno_encoding/geno_" + str(i) + ".csv", index = False)
+        recomb_stat = calc_total_recomb(high_sim[1])
+        recomb_stats.loc[recomb_stats["pop"] == i, "mean_mean"] = recomb_stat[0]
+        recomb_stats.loc[recomb_stats["pop"] == i, "num_mean"] = recomb_stat[1]
 
-        mean_add = additive_encoding(ref_allele, mean_sim)
+        mean_sim[0].to_csv("sim_output/mean_rec/geno_encoding/geno_" + str(i) + ".csv", index = False)
+
+        mean_add = additive_encoding(ref_allele, mean_sim[0])
 
         mean_add.to_csv("sim_output/mean_rec/additive_encoding/add_" + str(i) + ".csv", index = False)
         print(f"finished simulating {pop_dict[i]} ({i}/{len(pop_dict)})")
 
+    #save recombination stats
+    recomb_stats.to_csv("stats/summary_stats/recomb_stats.csv", index = False)
     #save all real pop genos as add encoding
     for i in pops:
         real_i = pd.read_csv("data/NAM_genotype_data/geno_encoding/pop_" + str(i) + "_genos.csv")

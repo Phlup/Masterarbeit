@@ -111,7 +111,7 @@ for(i in rec_param){
                      out_path = paste("../plots/popgen_plots/rogers_dist/",i,"/rogers_dist_",j,".png", sep = ""))
     
     plot_ld_decay(real = real_r2_D, sim = sim_r2_D, ks_p = ifelse(ld_ks_p < 0.001, "<0.001", round(ld_ks_p,3)),
-                  w1d = round(ld_w1d,2),
+                  w1d = round(ld_w1d,2), pop = j,
                   out_path = paste("../plots/popgen_plots/LD_decay/",i,"/ld_decay_",j,".png", sep = ""))
     
     #format sumstats
@@ -127,7 +127,7 @@ for(i in rec_param){
     
   }  
   print("finished")
-  write.csv(sum_stats, paste("../stats/sum_stats_",i,".csv", sep = ""), row.names = FALSE)
+  write.csv(sum_stats, paste("../stats/summary_stats/sum_stats_",i,".csv", sep = ""), row.names = FALSE)
 }
 
 #read in sum stats to compare rec scenarios
@@ -136,7 +136,7 @@ sum_results <- data.frame("rec_param" = c("normal_rec", "high_rec", "zero_rec", 
                           "ks_sig" = NA, "mean_sd_w1d" = NA, "ld_ks_sig" = NA, "mean_sd_ld_w1d" = NA,
                           "gc_sig" = NA, "mean_sd_gc" = NA, "rogers_sig" = NA, "rogers_cohens" = NA)
 for(i in rec_param){
-  sum_stats <- read.csv(paste("../stats/sum_stats_",i,".csv", sep = ""))
+  sum_stats <- read.csv(paste("../stats/summary_stats/sum_stats_",i,".csv", sep = ""))
   het_sig <- paste(table(sum_stats$het_p == "<0.001")[["TRUE"]],"/",
                    sum(table(sum_stats$het_p)), sep = "")
   het_phi <- paste("median: ", median(sum_stats$het_phi), ", IQR: ", IQR(sum_stats$het_phi),
@@ -173,4 +173,4 @@ for(i in rec_param){
                                             "ks_sig", "mean_sd_w1d", "ld_ks_sig", "mean_sd_ld_w1d",
                                             "gc_sig", "mean_sd_gc", "rogers_sig", "rogers_cohens")] <- results
 }
-write.csv(sum_results, "../stats/sum_results.csv", row.names = FALSE)
+write.csv(sum_results, "../stats/summary_stats/sum_results.csv", row.names = FALSE)

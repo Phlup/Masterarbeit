@@ -4,7 +4,7 @@ library(ggpubr)
 #ld decay plot, rogers distance plot, GC content
 
 #ld decay plot
-plot_ld_decay <- function(real, sim, ks_p, w1d, out_path){
+plot_ld_decay <- function(real, sim, ks_p, w1d, pop, out_path){
   plot <- ggplot() +
     geom_point(data = real, aes(d, r2, color = "Real genotypes"), size = 1.5, alpha = 0.05) +
     geom_point(data = sim, aes(d, r2, color = "Simulated genotypes"), size = 1.5, alpha = 0.05) +
@@ -12,7 +12,7 @@ plot_ld_decay <- function(real, sim, ks_p, w1d, out_path){
     geom_smooth(data = sim, aes(d, r2), method = "loess", se = FALSE, color = "darkorange", span = 0.2) +
     theme_minimal() +
     coord_cartesian(xlim = c(0, 100), ylim = c(0, 1)) +
-    labs(title = "LD decay of real and simulated genotypes for population i", x = "Distance in cM", y = expression(r^2)) +
+    labs(title = paste("LD decay of real and simulated genotypes for population",pop), x = "Distance in cM", y = expression(r^2)) +
     theme(plot.title = element_text(hjust = 0.5),
           legend.box.background = element_rect(color = "grey", linewidth = 1),
           legend.background = element_rect(fill = "white", color = NA),

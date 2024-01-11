@@ -95,7 +95,7 @@ for (meanrecomb in c(1,5,10)){
   }
   
   
-  pdf(paste0("hybrids_recomb_", meanrecomb , ".pdf"), width = 14)
+  #pdf(paste0("hybrids_recomb_", meanrecomb , ".pdf"), width = 14)
   
   par(mfrow = c(2,3))
   
@@ -120,7 +120,7 @@ for (meanrecomb in c(1,5,10)){
     
   }
   
-  dev.off()
+  #dev.off()
 }
 
 

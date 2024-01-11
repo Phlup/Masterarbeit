@@ -52,23 +52,40 @@ def draw_ancestry(ts: tskit.TreeSequence, x_size: int = 3000, y_size: int = 400)
     node_labels = {node.id: f"{node.individual}({node.id})" for node in ts.nodes()}
     SVG(ts.draw_svg(y_axis=True,  node_labels=node_labels, size=(x_size,y_size)))
 
-#calculate recombination tract means and events
+#calculate recombination tract means and events per ARG
 def calc_mean_recomb(arg: tskit.TreeSequence) -> tuple:
     """
-    Calculates mean recombination tract length and mean number of recombination events per individual
+    Calculates mean recombination tract length and mean number of recombination events per ARG
     in simulated pedigree offspring 
 
     Parameters:
         arg (tskit.TreeSequence): TreeSequence object obtained from msprime.sim_ancestry.
 
     Returns:
-        tuple: mean recombination tract length and mean number of recombination events per individual
+        tuple: mean recombination tract length and mean number of recombination events per ARG
     """
-
     recomb_tracts = pd.DataFrame({"length": abs(arg.edges_left-arg.edges_right), "child": arg.edges_child})
     offspring = list(set(arg.edges_child) - set(arg.edges_parent))
     recomb_tracts = recomb_tracts.loc[recomb_tracts["child"].isin(offspring),]
     return recomb_tracts["length"].mean(), recomb_tracts["length"].count()/len(offspring)
+
+#calc total recomb means and events across all chromosomes
+def calc_total_recomb(args: List[tskit.TreeSequence]) -> tuple:
+    """
+    Calculates total recomb means and events across all chromosomes (ARGs) in simulated genotype
+
+    Parameters:
+        arg (tskit.TreeSequence): TreeSequence object obtained from msprime.sim_ancestry.
+
+    Returns:
+        tuple: total mean recombination tract length and mean number of recombination events per individual (all chromosomes)
+    """
+    recomb_means = list()
+    recomb_nums = list()
+    for i in range(0, len(args)):
+        recomb_means.append(calc_mean_recomb(args[i])[0])
+        recomb_nums.append(calc_mean_recomb(args[i])[1])
+    return pd.Series(recomb_means).mean(), pd.Series(recomb_nums).mean()
 
 #calculate allele frequencies
 def calc_allele_freq(matrix: List[List[int]], alleles: int = 3) -> List[float]:

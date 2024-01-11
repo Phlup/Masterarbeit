@@ -13,6 +13,7 @@ NAM_parent_genos <- as.data.frame(t(NAM_genos[,c(1:27)]))
 colnames(NAM_parent_genos)[1] <- "RIL"
 
 write.csv(NAM_parent_genos, "../data/sim_data/NAM_parent_genos.csv", row.names = FALSE)
+
 #B73 allele
 B73_allele <- data.table("SNP" = row.names(NAM_genos), "B73" = paste(substring(NAM_genos[,1], 1, 1), substring(NAM_genos[,1], 3, 3),
                                                                      sep = ""))
@@ -56,7 +57,6 @@ write.csv(populations, "../data/sim_data/populations.csv", row.names = FALSE)
 
 
 ##clean phenotype data, extract target vectors for offspring populations and phenotype means
-
 populations <- read.csv("../data/sim_data/populations.csv")
 
 silk <- read.table("../data/Buckler_etal_2009_Science_flowering_time_data-090807/NAM_DaysToSilk.txt",
@@ -130,7 +130,22 @@ colnames(result) <- c("pop", "env", "trait", "trait_mean", "trait_max", "trait_m
 write.csv(NAM_phenotypes, "../data/NAM_phenotype_data/NAM_phenotypes.csv", row.names = FALSE)
 write.csv(mean_phenotypes, "../data/NAM_phenotype_data/mean_phenotypes.csv", row.names = FALSE)
 
+#NAM parent genos in additive encoding
+populations <- read.csv("../data/sim_data/populations.csv")
+NAM_parent_genos <- read.csv("../data/sim_data/NAM_parent_genos.csv")
 
+populations <- rbind(populations, c(0, NA, "B73", NA, NA))
+
+NAM_add <- NAM_parent_genos
+NAM_add <- merge(populations[,c("pop", "parent")], NAM_add, by.x = "parent", by.y = "RIL", all = TRUE)
+NAM_add <- NAM_add[!(is.na(NAM_add$pop)),]
+hets <- apply(NAM_add[3:length(NAM_add[1,])], c(1,2), function(x){ifelse(substr(x,1,1)==substr(x,3,3),NA,0)})
+homos <- t(apply(NAM_add[,3:length(NAM_add[1,])], 1, function(x){
+  ifelse(NAM_add[1,3:length(NAM_add[1,])] == x, 1, -1)}))
+homos[!is.na(hets)] <- hets[!is.na(hets)]
+NAM_add[,3:length(NAM_add[1,])] <- homos
+
+write.csv(NAM_add, "../data/sim_data/NAM_parent_add.csv", row.names = FALSE)
 ##----
 #genotpyes encoded (unexpected encoding, see test_imputed_data.R)
 #reduce nam offspring genotypes to subset
