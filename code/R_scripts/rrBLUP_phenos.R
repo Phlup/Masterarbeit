@@ -2,7 +2,6 @@ library(Matrix)
 library(MASS)
 library(crayon)
 library(sommer)
-library(openxlsx)
 
 ##train rrBLUP for marker effect estimation
 ##and determine best cross of sim datasets (max traits with calc marker effects)
@@ -14,20 +13,22 @@ NAM_phenotypes <- read.csv("../data/NAM_phenotype_data/NAM_phenotypes.csv")
 genmap <- read.csv("../data/sim_data/B73_genmap.csv")
 #read populations
 populations <- read.csv("../data/sim_data/populations.csv")
-# read parent genotypes
+#read parent genotypes
 NAM_parent_add = read.csv("../data/sim_data/NAM_parent_add.csv")
 
 traits <- c("silk", "tassel", "oil", "protein", "starch")
 
 #create output dfs
-rrblup_preds <- data.frame("pop" = NULL, "marker" = NULL, "effect" = NULL, "trait" = NULL, "env" = NULL)
-real_preds <- data.frame("pop" = NULL, "ind" = NULL, "pred" = NULL, "trait" = NULL, "env" = NULL)
+rrblup_preds <- data.frame("pop" = NULL, "marker" = NULL, "effect" = NULL, "intercept" = NULL,
+                           "trait" = NULL, "env" = NULL)
+real_preds <- data.frame("pop" = NULL, "ind" = NULL, "pred" = NULL, "residuals" = NULL, "trait" = NULL, "env" = NULL)
 sim_preds <- data.frame("pop" = NULL, "pred" = NULL, "trait" = NULL, "env" = NULL)
 real_summary <- data.frame("pop" = rep(populations$pop, times = 5), "trait" = rep(traits, each = length(populations$pop)),
                            "trait_mean" = NA, "trait_max" = NA, "trait_min" = NA, "trait_var" = NA, "trait_95_perc" = NA)
 sim_summary <- data.frame("pop" = rep(populations$pop, times = 5), "trait" = rep(traits, each = length(populations$pop)),
                           "trait_mean" = NA, "trait_max" = NA, "trait_min" = NA, "trait_var" = NA, "trait_95_perc" = NA)
 NAM_pheno_reduced <- data.frame("pop" = NULL, "individual" = NULL, "value" = NULL, "env" = NULL, "trait" = NULL)
+
 #for now, focus on env Aurora NY 2006 (06A) and Columbia MO 2006 (06MO)
 #for each env individually, no fixed effect calc
 env <- "06A"
@@ -40,6 +41,7 @@ for(i in populations$pop){
   real_add <- real_add[,c("individual",genmap$Marker)]
   NAM_parent_add <- NAM_parent_add[,c("pop",genmap$Marker)]
   parent_cross <- NAM_parent_add[NAM_parent_add$pop %in% c(0,i),!colnames(NAM_parent_add) %in% c("parent","pop")]
+
   for(j in traits){
     #subset real and sim add and phenotypes based on intersection of individual ids per env and pop
     #not all real genotypes have measured phenotype and otherwise
@@ -50,9 +52,14 @@ for(i in populations$pop){
     phenos <- phenos[phenos$individual %in% IDs,]
     
     NAM_pheno_reduced <- rbind(NAM_pheno_reduced, phenos)
-
+    
+    #get marker effects + intercept
+    effects <- rBLUP$U$`u:real_temp`$value
+    intercept <- rBLUP$Beta$Estimate
+    residuals <- rBLUP$residuals
+    
     ##run rrBLUP
-    rBLUP <- mmer(value ~ 1, random = ~vsr(list(real_temp)), rcov=~units, data = phenos, verbose = FALSE)
+    rBLUP <- mmer(value ~ 1, random = ~vsr(list(real_temp)), rcov=~units, data = phenos, verbose = TRUE)
     
     #get marker effects + intercept
     effects <- rBLUP$U$`u:real_temp`$value
@@ -65,7 +72,7 @@ for(i in populations$pop){
     pred_sim <- t(apply(sim_temp,1,function(x){effects*x}))
     #calc exp values of parental cross
     parent_exp <- t(apply(parent_cross,1,function(x){effects*x}))
-    
+
     #additive phenotype
     real_phenos <- rowSums(pred_real) + intercept
     sim_phenos <- rowSums(pred_sim) + intercept
@@ -73,11 +80,12 @@ for(i in populations$pop){
     #save predictions and summary stats
     rrblup_preds <- rbind(rrblup_preds, 
                           data.frame("pop" = i, "marker" = names(effects),
-                                     "effect" = effects, "trait" = j, "env" = env))
+                                     "effect" = effects, "intercept" = intercept,
+                                     "trait" = j, "env" = env))
     
     real_preds <- rbind(real_preds,
                         data.frame("pop" = i, "ind" = names(real_phenos),
-                                   "pred" = real_phenos, "trait" = j, "env" = env))
+                                   "pred" = real_phenos, "residuals" = residuals, "trait" = j, "env" = env))
 
     sim_preds <- rbind(sim_preds,
                        data.frame("pop" = i, "pred" = sim_phenos, "trait" = j, "env" = env))
@@ -127,6 +135,7 @@ for(i in populations$pop){
   }
 }
 
+#save marker effects and trait parameters
 write.csv(rrblup_preds, "../stats/pheno_prediction/rrBLUP_mrk_effects.csv", row.names = FALSE)
 write.csv(real_preds, "../stats/pheno_prediction/real_preds.csv", row.names = FALSE)
 write.csv(sim_preds, "../stats/pheno_prediction/sim_preds.csv", row.names = FALSE)
@@ -134,16 +143,39 @@ write.csv(real_summary, "../stats/pheno_prediction/real_summary.csv", row.names 
 write.csv(sim_summary, "../stats/pheno_prediction/sim_summary.csv", row.names = FALSE)
 write.csv(NAM_pheno_reduced, "../stats/pheno_prediction/NAM_pheno_reduced.csv", row.names = FALSE)
 
-##todo: calc prediction accuracy on real phenos
+##calculate marker effects over all real population geno+phenotypes
+all_real <- data.frame(NULL)
+IDs_all <- data.frame(NULL)
 
-##model comparison similar to john et al comparison of classical and ml methods 2022
-##-> similar model ranking? + overall accuracy + feature usage for prediction as three outcomes
+for(i in populations$pop){
+  real_add <- read.csv(paste("../data/NAM_genotype_data/additive_encoding/pop_",i,"_add.csv", sep = ""))
+  real_add <- real_add[,c("individual",genmap$Marker)]
+  real_add$pop <- i
+  all_real <- rbind(all_real, real_add)
+  IDs_all <- rbind(IDs_all, NAM_phenotypes[NAM_phenotypes$pop == i & NAM_phenotypes$env == env &
+                                             NAM_phenotypes$trait == "silk",c("pop", "individual")])
+}
+ID_both <- intersect(paste(all_real$individual, all_real$pop), paste(IDs_all$individual, IDs_all$pop))
+all_real <- all_real[paste(all_real$individual, all_real$pop) %in% ID_both,
+                     !colnames(all_real) %in% c("individual", "pop")]
+phenos <- NAM_phenotypes[paste(NAM_phenotypes$individual, NAM_phenotypes$pop) %in% ID_both
+                         & NAM_phenotypes$env == env & NAM_phenotypes$trait == "silk",]  
+row.names(phenos) <- ID_both
+row.names(all_real) <- ID_both
+rBLUP <- mmer(value ~ 1, random = ~vsr(list(all_real)), rcov=~units, data = phenos, verbose = TRUE)
+#get marker effects + intercept
+effects <- rBLUP$U$`u:all_real`$value
+intercept <- rBLUP$Beta$Estimate
+residuals <- rBLUP$residuals
+rrblup_preds_all <- data.frame("marker" = names(effects), "effect" = effects,
+                               "intercept" = intercept, "trait" = j, "env" = env)
 
-##rrblup for marker effects -> sum up marker effects for total trait value and compare mean trait value of best
-##performing cross with best performing real pop or do mse etc.
+#calc pred. values on real genos
+#pred_real_all <- t(apply(all_real,1,function(x){effects*x}))
+##additive phenotype
+#real_phenos_all <- rowSums(pred_real_all) + intercept
+#real_preds_all <- data.frame("ind" = names(real_phenos), "pred" = real_phenos_all,
+#                             "residuals" = residuals, "trait" = "silk", "env" = env)
 
-##gblup for genotype effects -> what do genotype effects imply
-##xgboost feature importance: small number of always important features? ifnot, might not be usfeul
-##cnn window approach: conserved/consistently important regions for features? ifnot, might not be useful
-#-> can further information about breeding be gained from snp importance? if not, choose best performing model
-#discussion
+write.csv(rrblup_preds_all, "../stats/pheno_prediction/rrBLUP_mrk_effects_all.csv", row.names = FALSE)
+#write.csv(real_preds_all, "../stats/pheno_prediction/real_preds_all.csv", row.names = FALSE)

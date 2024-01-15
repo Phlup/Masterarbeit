@@ -79,6 +79,8 @@ for(i in rec_param){
     gc_cohens <- cohens_d(gc_vec_s, gc_vec_r)$Cohens_d
     
     ##2. popgen stats
+    #recomb tract mean (debug parameters in genosim)
+    
     #ld decay
     sim_ld <- LD.decay(sim_add, ld_map)
     sim_ld$all.LG <- sim_ld$all.LG[(sim_ld$all.LG$p < .001),]

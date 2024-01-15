@@ -44,3 +44,18 @@ GC_cont <- function(seq_vec) {
   GC_count <- sum(seq_vec %in% c("G", "C"))
   return(GC_count/length(seq_vec))
 }
+
+#build feature dataframe for rolling correlation of parental traits for i populations
+calc_trait_cor <- function(traits, populations, window_size, genmap){
+  trait_cors <- data.frame(NULL)
+  trait_feat_num <- floor(length(genmap$Marker)/window_size)
+  for(i in populations$pop){
+    parents <- populations[populations$pop == i, c("parent_1", "parent_2")]
+    pop_i_cors <- t(rollapply(t(as.data.frame(traits[traits$parent %in% parents, !colnames(traits) %in% c("pop", "parent")])),
+                              width = window_size, function(x) cor(x[,1],x[,2]), by.column = FALSE, by = window_size))
+    colnames(pop_i_cors) <- sapply(1:trait_feat_num, function(a) paste((a - 1) * window_size + 1, a * window_size, sep = ":"))
+    pop_i_cors <- cbind(data.frame("pop" = i), pop_i_cors)
+    trait_cors <- rbind(trait_cors, pop_i_cors)
+  }
+  return(trait_cors)
+}
