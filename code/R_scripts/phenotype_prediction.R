@@ -84,6 +84,25 @@ sim_cors <- calc_trait_cor(traits = real_traits, populations = sim_pops, window_
 write.csv(real_cors, "../stats/pheno_prediction/real_cors.csv", row.names = FALSE)
 write.csv(sim_cors, "../stats/pheno_prediction/sim_cors.csv", row.names = FALSE)
 
+##calc parent pair traits + marker rates for sim and real
+real_parent_trait_map <- data.frame(NULL)
+for(i in real_pops$pop){
+  parents <- real_pops[real_pops$pop == i, c("parent_1", "parent_2")]
+  real_traits_i <- real_traits[real_traits$parent %in% parents, !colnames(real_traits) %in% c("pop", "parent")]
+  real_traits_i <- rbind(real_traits_i, genmap$Rate.cM.Mb.)
+  real_parent_trait_map <- rbind(real_parent_trait_map, real_traits_i)
+}
+
+sim_parent_trait_map <- data.frame(NULL)
+for(i in sim_pops$pop){
+  parents <- sim_pops[sim_pops$pop == i, c("parent_1", "parent_2")]
+  sim_traits_i <- real_traits[real_traits$parent %in% parents, !colnames(real_traits) %in% c("pop", "parent")]
+  sim_traits_i <- rbind(sim_traits_i, genmap$Rate.cM.Mb.)
+  sim_parent_trait_map <- rbind(sim_parent_trait_map, sim_traits_i)
+}
+
+write.csv(real_parent_trait_map, "../stats/pheno_prediction/real_parent_trait_map.csv", row.names = FALSE)
+write.csv(sim_parent_trait_map, "../stats/pheno_prediction/sim_parent_trait_map.csv", row.names = FALSE)
 
 ##train models
 sim_pheno <- sim_summary$trait_95_perc
