@@ -5,6 +5,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import io
 from IPython.display import display as SVG
+from decimal import *
 import pandas as pd
 import numpy as np
 from typing import List, Tuple, Dict
@@ -52,14 +53,14 @@ def add_selfing(df: pd.DataFrame, size_diff: int = 0) -> pd.DataFrame:
     return(df)
 
 #random mating
-#implement chance of selfing
-def add_random_mating(df: pd.DataFrame, size_diff: int = 0) -> pd.DataFrame:
+def add_random_mating(df: pd.DataFrame, size_diff: int = 0, selfing_rate: int = 0) -> pd.DataFrame:
     """
     Add individuals from random mating (next generation) to the pedigree.
 
     Parameters:
         df (pd.DataFrame): DataFrame representing the pedigree.
         size_diff (int): Size difference of current and next generation.
+        selfing_rate (int): Specifies rate of guaranteed selfing.
 
     Returns:
         pd.DataFrame: Updated DataFrame with randomly mated individuals.
@@ -68,8 +69,12 @@ def add_random_mating(df: pd.DataFrame, size_diff: int = 0) -> pd.DataFrame:
     parents = df.loc[df['time'] == df['time'].min(), "id"].to_numpy()
     max_id = df.loc[df['id'].max(), "id"]
     ids = [i for i in range(max_id + 1, max_id + 1 + len(parents) + size_diff)]
-    df = pd.concat(objs=(df, pd.DataFrame({"id" : ids, "parent0": np.random.choice(parents, len(parents) + size_diff),
-                                           "parent1": np.random.choice(parents, len(parents) + size_diff),
+    selfs = int(Decimal((len(parents) + size_diff)*selfing_rate).quantize(Decimal('1'), rounding=ROUND_HALF_UP))
+    non_selfs = int(Decimal((len(parents) + size_diff)*(1-selfing_rate)).quantize(Decimal('1'), rounding=ROUND_HALF_DOWN))
+    parent0 = np.concatenate([np.resize(parents, selfs), np.random.choice(parents, non_selfs)])
+    parent1 = np.concatenate([np.resize(parents, selfs), np.random.choice(parents, non_selfs)])
+    df = pd.concat(objs=(df, pd.DataFrame({"id" : ids, "parent0": parent0,
+                                           "parent1": parent1,
                                            "time" : [0]*(len(parents) + size_diff)}))).reset_index(drop = True)
     
     return(df)
@@ -301,12 +306,12 @@ def additive_encoding(ref: pd.DataFrame, genotypes: pd.DataFrame) -> pd.DataFram
     merged = pd.merge(ref, melted, on = "SNP", how = "inner")
     merged["Match"] = merged["B73"] == merged["sim_allele"]
     merged["Value"] = np.where(merged["sim_allele"].str[0] == merged["sim_allele"].str[1], np.where(merged["Match"] == True, -1, 1), 0)
-    geno_add = merged.pivot(index = "individual", columns = "SNP", values = "Value")
+    geno_add = merged.pivot(index = "individual", columns = "SNP", values = "Value").reset_index()
     
     return(geno_add)
 
 def genotype_simulation(genetic_map: pd.DataFrame, parent_genos: pd.DataFrame, ref_allele: pd.DataFrame,
-                        founder_list: List[str], offspring: int, selfing_genos: int = 5) -> pd.DataFrame:
+                        founder_list: List[str], offspring: int, selfing_genos: int = 5) -> (pd.DataFrame, List[tskit.TreeSequence]):
     """
     Simulate genotypes based on the given parameters.
 
@@ -320,6 +325,7 @@ def genotype_simulation(genetic_map: pd.DataFrame, parent_genos: pd.DataFrame, r
 
     Returns:
         pd.DataFrame: DataFrame containing simulated genotypes.
+        List[tskit.TreeSequence]: List containing ARGs of the simulated pedigree per chromosome.
     """
     #get founder nodes
     founder_nodes = get_founder_nodes(parent_genos, founder_list)
@@ -329,6 +335,8 @@ def genotype_simulation(genetic_map: pd.DataFrame, parent_genos: pd.DataFrame, r
     pedigree = cross_selfing_ped(offspring = offspring, selfing_genos = selfing_genos)
     #init final genotypes dataframe
     genotypes = pd.DataFrame({"individual": pedigree.loc[pedigree["time"] == 0, "id"]})
+    #init final ARG list
+    ARGs = list()
     #loop over each chromosome, append results (treats chromosomes entirely independent)
     #possible to parallelise due to independence of tasks
     print("starting simulation")
@@ -349,8 +357,10 @@ def genotype_simulation(genetic_map: pd.DataFrame, parent_genos: pd.DataFrame, r
         chr_genotypes = join_nodes(chr_arg, chr_geno_sim)
         #merge chr_i genotypes to final genotypes
         genotypes = pd.merge(genotypes, chr_genotypes, on = "individual", how = "inner")
+        #append ARG to arg list
+        ARGs.append(chr_arg)
         print(f"finished chromsome {i}")
-    #recode final genotypes to additive encoding according to reference alleles
-    #genotypes_additive = additive_encoding(ref_allele, genotypes)
 
-    return(genotypes)
+    
+
+    return(genotypes, ARGs)

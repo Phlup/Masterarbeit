@@ -67,7 +67,7 @@ def calc_mean_recomb(arg: tskit.TreeSequence) -> tuple:
     recomb_tracts = pd.DataFrame({"length": abs(arg.edges_left-arg.edges_right), "child": arg.edges_child})
     offspring = list(set(arg.edges_child) - set(arg.edges_parent))
     recomb_tracts = recomb_tracts.loc[recomb_tracts["child"].isin(offspring),]
-    return recomb_tracts["length"].mean(), recomb_tracts["length"].count()/len(offspring)
+    return recomb_tracts["length"].mean()/1000000, recomb_tracts["length"].count()/(len(offspring)/2)
 
 #calc total recomb means and events across all chromosomes
 def calc_total_recomb(args: List[tskit.TreeSequence]) -> tuple:
@@ -85,7 +85,7 @@ def calc_total_recomb(args: List[tskit.TreeSequence]) -> tuple:
     for i in range(0, len(args)):
         recomb_means.append(calc_mean_recomb(args[i])[0])
         recomb_nums.append(calc_mean_recomb(args[i])[1])
-    return pd.Series(recomb_means).mean(), pd.Series(recomb_nums).mean()
+    return pd.Series(recomb_means).mean(), pd.Series(recomb_nums).sum()
 
 #calculate allele frequencies
 def calc_allele_freq(matrix: List[List[int]], alleles: int = 3) -> List[float]:

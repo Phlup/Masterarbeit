@@ -17,6 +17,7 @@ source("stat_functions.R")
 #gc content distribution across all individuals+sites
 
 #2. additional popgen stats
+#recomb stats (mean recomb tract length + num recomb per ind)
 #linkage disequilibrium decay (r2~d)
 #ks test/density of r2 between sim and real encoding
 #distance measure (e.g. euclidean/rogers distance)
@@ -79,8 +80,6 @@ for(i in rec_param){
     gc_cohens <- cohens_d(gc_vec_s, gc_vec_r)$Cohens_d
     
     ##2. popgen stats
-    #recomb tract mean (debug parameters in genosim)
-    
     #ld decay
     sim_ld <- LD.decay(sim_add, ld_map)
     sim_ld$all.LG <- sim_ld$all.LG[(sim_ld$all.LG$p < .001),]
@@ -133,10 +132,15 @@ for(i in rec_param){
 }
 
 #read in sum stats to compare rec scenarios
+#recomb stats from genotype simulation
+recomb_stats <- read.csv("../stats/summary_stats/recomb_stats.csv")
+recomb_sumstats <- apply(recomb_stats[,2:9], 2, mean)
 sum_results <- data.frame("rec_param" = c("normal_rec", "high_rec", "zero_rec", "mean_rec"),
-                          "het_sig" = NA, "mean_sd_phi" = NA, "geno_sig" = NA, "mean_sd_cramersV" = NA,
-                          "ks_sig" = NA, "mean_sd_w1d" = NA, "ld_ks_sig" = NA, "mean_sd_ld_w1d" = NA,
-                          "gc_sig" = NA, "mean_sd_gc" = NA, "rogers_sig" = NA, "rogers_cohens" = NA)
+                          "recomb_mean" = NA, "recomb_num" = NA, "het_sig" = NA, "mean_sd_phi" = NA,
+                          "geno_sig" = NA, "mean_sd_cramersV" = NA, "ks_sig" = NA, "mean_sd_w1d" = NA,
+                          "ld_ks_sig" = NA, "mean_sd_ld_w1d" = NA, "gc_sig" = NA, "mean_sd_gc" = NA,
+                          "rogers_sig" = NA, "rogers_cohens" = NA)
+j <- 0
 for(i in rec_param){
   sum_stats <- read.csv(paste("../stats/summary_stats/sum_stats_",i,".csv", sep = ""))
   het_sig <- paste(table(sum_stats$het_p == "<0.001")[["TRUE"]],"/",
@@ -169,10 +173,13 @@ for(i in rec_param){
   rogers_cohens <- paste("median: ", median(sum_stats$rogers_cohens), ", IQR: ", IQR(sum_stats$rogers_cohens),
                      ", mean: ", signif(mean(sum_stats$rogers_cohens),3),
                      " ± ", signif(sd(sum_stats$rogers_cohens),3), sep = "")
-  results <- c(het_sig, het_phi, geno_sig, geno_cramersV, ks_sig, w1d, ld_ks_sig, ld_w1d, gc_sig, gc_cohens,
-               rogers_sig, rogers_cohens)
-  sum_results[sum_results$rec_param == i, c("het_sig", "mean_sd_phi", "geno_sig", "mean_sd_cramersV",
-                                            "ks_sig", "mean_sd_w1d", "ld_ks_sig", "mean_sd_ld_w1d",
-                                            "gc_sig", "mean_sd_gc", "rogers_sig", "rogers_cohens")] <- results
+  results <- c(recomb_sumstats[1+j], recomb_sumstats[2+j], het_sig, het_phi, geno_sig, geno_cramersV, ks_sig,
+               w1d, ld_ks_sig, ld_w1d, gc_sig, gc_cohens, rogers_sig, rogers_cohens)
+  sum_results[sum_results$rec_param == i, c("recomb_mean", "recomb_num", "het_sig", "mean_sd_phi", "geno_sig",
+                                            "mean_sd_cramersV", "ks_sig", "mean_sd_w1d", "ld_ks_sig",
+                                            "mean_sd_ld_w1d", "gc_sig", "mean_sd_gc", "rogers_sig",
+                                            "rogers_cohens")] <- results
+  j <- j + 2
 }
+
 write.csv(sum_results, "../stats/summary_stats/sum_results.csv", row.names = FALSE)

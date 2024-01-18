@@ -37,7 +37,8 @@ gen_map[, cM_diff := (shift(cumulative, n = -1) - cumulative), by = ch]
 gen_map[, rate := cM_diff/(pos_diff/1000000)]
 
 #impute rates for last SNPs per chr
-gen_map[,rate := replace(rate, is.na(rate), median(rate, na.rm = TRUE)), by = ch]
+gen_map[,rate := replace(rate, is.na(rate), 0), by = ch]
+
 
 #save pos diff for CNN training
 genmap_posdiff <- gen_map[,c("marker", "pos_diff")]

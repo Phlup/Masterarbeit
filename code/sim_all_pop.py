@@ -19,15 +19,17 @@ if __name__ == '__main__':
     size_dict = dict(zip(populations["pop"], populations["size"]))
     pops = populations["pop"]
 
-    # genmap with high recombination rate
     genmap_high = genmap.copy()
     genmap_high["Rate(cM/Mb)"] += 5
+    # ensure last recombination rate is 0 at every chromosome (requirement for msprime)
+    genmap_high.loc[genmap_high.groupby("Chromosome").tail(1).index, "Rate(cM/Mb)"] = 0
     # genmap with 0 recombination rate
     genmap_zero = genmap.copy()
     genmap_zero["Rate(cM/Mb)"] = 0
     # genmap with constant recombination rate (mean over all recombination)
     genmap_mean = genmap.copy()
     genmap_mean["Rate(cM/Mb)"] = genmap["Rate(cM/Mb)"].mean()
+    genmap_mean.loc[genmap_mean.groupby("Chromosome").tail(1).index, "Rate(cM/Mb)"] = 0
 
     recomb_stats = pd.DataFrame({"pop": pops, "mean_norm": None, "num_norm": None, "mean_high": None, "num_high": None,
                                  "mean_zero": None, "num_zero": None, "mean_mean": None, "num_mean": None})

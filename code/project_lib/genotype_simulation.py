@@ -173,7 +173,7 @@ def get_offspring(ts: tskit.TreeSequence) -> List[int]:
 
 def get_edges(parents: List[int], ts: tskit.TreeSequence) -> pd.DataFrame:
     """
-    Get a DataFrame containing all edges of next generation in ARG in ts.
+    Get a DataFrame containing all edges of next generation in ARG.
 
     Parameters:
         parents (List[int]): List of parent nodes.
@@ -263,7 +263,7 @@ def get_rate_map(genmap: pd.DataFrame) -> msprime.RateMap:
         msprime.RateMap: Generated rate map.
     """
     genmap = genmap[["Chromosome", "Position(bp)", "Rate(cM/Mb)", "Map(cM)"]]
-    return(msprime.RateMap.read_hapmap(io.StringIO(genmap.to_string(index = False))))
+    return(msprime.RateMap.read_hapmap(io.StringIO(genmap.to_string(index = False)), rate_col = 2))
     
 #function to join nodes at individual level to reconstruct diploid genome
 def join_nodes(arg: tskit.TreeSequence, geno_sim: pd.DataFrame) -> pd.DataFrame:

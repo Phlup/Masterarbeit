@@ -37,18 +37,55 @@ def draw_pedigree(ped_ts: tskit.TableCollection) -> None:
     plt.show()
 
 #print ancestry
-def draw_ancestry(ts: tskit.TreeSequence) -> None:
+def draw_ancestry(ts: tskit.TreeSequence, x_size: int = 3000, y_size: int = 400) -> None:
     """
     Print the ancestry of individuals in the tree sequence as ancestral recombination graph (ARG).
 
     Parameters:
         ts (tskit.TreeSequence): A tree sequence.
+        x_size (int): Size of x dimension.
+        y_size (int): Size of y dimension.
 
     Returns:
         None, displays plot
     """
     node_labels = {node.id: f"{node.individual}({node.id})" for node in ts.nodes()}
-    SVG(ts.draw_svg(y_axis=True,  node_labels=node_labels, size=(3500,400)))
+    SVG(ts.draw_svg(y_axis=True,  node_labels=node_labels, size=(x_size,y_size)))
+
+#calculate recombination tract means and events per ARG
+def calc_mean_recomb(arg: tskit.TreeSequence) -> tuple:
+    """
+    Calculates mean recombination tract length and mean number of recombination events per ARG
+    in simulated pedigree offspring 
+
+    Parameters:
+        arg (tskit.TreeSequence): TreeSequence object obtained from msprime.sim_ancestry.
+
+    Returns:
+        tuple: mean recombination tract length and mean number of recombination events per ARG
+    """
+    recomb_tracts = pd.DataFrame({"length": abs(arg.edges_left-arg.edges_right), "child": arg.edges_child})
+    offspring = list(set(arg.edges_child) - set(arg.edges_parent))
+    recomb_tracts = recomb_tracts.loc[recomb_tracts["child"].isin(offspring),]
+    return recomb_tracts["length"].mean(), recomb_tracts["length"].count()/(len(offspring)*2)
+
+#calc total recomb means and events across all chromosomes
+def calc_total_recomb(args: List[tskit.TreeSequence]) -> tuple:
+    """
+    Calculates total recomb means and events across all chromosomes (ARGs) in simulated genotype
+
+    Parameters:
+        arg (tskit.TreeSequence): TreeSequence object obtained from msprime.sim_ancestry.
+
+    Returns:
+        tuple: total mean recombination tract length and mean number of recombination events per individual (all chromosomes)
+    """
+    recomb_means = list()
+    recomb_nums = list()
+    for i in range(0, len(args)):
+        recomb_means.append(calc_mean_recomb(args[i])[0])
+        recomb_nums.append(calc_mean_recomb(args[i])[1])
+    return pd.Series(recomb_means).mean(), pd.Series(recomb_nums).sum()
 
 #calculate allele frequencies
 def calc_allele_freq(matrix: List[List[int]], alleles: int = 3) -> List[float]:
@@ -123,14 +160,14 @@ def genotype_counts(genotype_sim: pd.DataFrame) -> pd.Series:
     return(pd.Series(genotype_sim.values.flatten().tolist()).value_counts())
 
 #generate and save summary histogram, KDEs and statistics to compare real and simulated genotype distribution
-def summary_plot(real_additive: pd.DataFrame, sim_additive: pd.DataFrame, founder_list: List[str], out_path: str) -> None:
+def summary_plot(real_additive: pd.DataFrame, sim_additive: pd.DataFrame, pop_num: int, out_path: str) -> None:
     """
     Generate a summary plot comparing real and simulated genotypes.
 
     Parameters:
-        real_additive (pd.DataFrame): DataFrame containing real additive encoded genotypes.
+        real_additive (pd.DataFrame): DataFrame containing real additive encoded genotypes (no individual column!).
         sim_additive (pd.DataFrame): DataFrame containing simulated additive encoded genotypes.
-        founder_list (List[str]): List of two founder names.
+        pop_num (int): number of simulated population
         out_path (str): Output path for the summary plot.
     """
     #get vector of sums of additive encoding for all individuals
@@ -147,16 +184,18 @@ def summary_plot(real_additive: pd.DataFrame, sim_additive: pd.DataFrame, founde
     bins = np.linspace(min(np.concatenate([real_sum, sim_sum])), max(np.concatenate([real_sum, sim_sum])), 30)
 
     #plot histogram and KDEs with ks test and WS dist
-    sns.histplot(real_sum, kde = True, label = "Real genotypes", color = "blue", bins = bins, alpha = 0.1)
-    sns.histplot(sim_sum, kde = True, label = "Simulated genotypes", color = "orange", bins = bins, alpha = 0.1)
-    plt.legend()
-    plt.title("Histograms, KDEs and summary statistics of real and simulated genotypes for " + founder_list[0] + "x" + founder_list[1])
+    sns.histplot(real_sum, kde = True, label = "Real genotypes", color = "blue", bins = bins, alpha = 0.5)
+    sns.histplot(sim_sum, kde = True, label = "Simulated genotypes", color = "orange", bins = bins, alpha = 0.5)
+    plt.legend(loc = 'upper right')
+    plt.title("Histograms, KDEs and summary statistics of real and simulated genotypes for population " + str(pop_num))
     plt.xlabel("Sum of additive encoding per individual")
-    plt.text(0.05, 0.95, f'KS Statistic: {ks_statistic:.4f}\nKS Test P-Value: {p_value:.4f}', 
+    ks_text = f'KS Test P-Value: {p_value:.3f}' if p_value >= 0.001 else f'KS Test P-Value: <0.001'
+    plt.text(0.05, 0.95, ks_text, 
          transform=plt.gca().transAxes, fontsize=10,
-         verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-    plt.text(0.05, 0.85, f'Wasserstein Distance: {wasserstein_dist:.2f}', transform=plt.gca().transAxes, fontsize=10,
-         verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+         verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.7))
+    plt.text(0.05, 0.88, f'Wasserstein Distance: {wasserstein_dist:.2f}', transform=plt.gca().transAxes, fontsize=10,
+         verticalalignment='top', bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.7))
 
-    plt.savefig(out_path, dpi = 300, bbox_inches = "tight")
+    plt.savefig(out_path, dpi = 500, bbox_inches = "tight")
+    plt.close()
 
