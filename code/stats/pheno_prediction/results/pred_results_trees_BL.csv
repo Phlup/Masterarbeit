@@ -1,0 +1,3 @@
+"X.RandomForest.","X.trait_mean.","X.starch.","X.1.303.","X..0.095.","X.0.65.","X.FALSE."
+"RandomForest","trait_mean","starch","1.303","-0.095","0.65","FALSE"
+"XGBoost","trait_mean","starch","1.303","-0.203","0.332","FALSE"

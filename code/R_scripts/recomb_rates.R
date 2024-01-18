@@ -39,6 +39,12 @@ gen_map[, rate := cM_diff/(pos_diff/1000000)]
 #impute rates for last SNPs per chr
 gen_map[,rate := replace(rate, is.na(rate), median(rate, na.rm = TRUE)), by = ch]
 
+#save pos diff for CNN training
+genmap_posdiff <- gen_map[,c("marker", "pos_diff")]
+genmap_posdiff[is.na(genmap_posdiff)] <- 0
+
+write.csv(genmap_posdiff, "../data/sim_data/genmap_posdiff.csv", row.names = FALSE)
+
 gen_map <- gen_map[,c("marker","ch", "Position", "rate", "cumulative")]
 colnames(gen_map) <- c("Marker", "Chromosome", "Position(bp)", "Rate(cM/Mb)", "Map(cM)")
 

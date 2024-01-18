@@ -6,8 +6,12 @@ add layer adapting to current parental step
 e.g. domain adaptation adapting different domain -> compute mean difference add to predicted
 use global marker effects
 distance between traits between max and min of range of markers
-traits not regionally explaiend in genome -> why correlation might be nonsensical
+
+discussion: traits might not be regionally explained in genome -> why correlation might be nonsensical
+-> explainability low but prediction good
+
 plot best performing and lowest performing crosses for marker traits (estimated globally)
 randomly combining marker effects into offspring (binomially sampling)
 send manuscript mid february if 80% done
 20th feb meeting paper 11am
+

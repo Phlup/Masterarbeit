@@ -1,0 +1,71 @@
+library(Matrix)
+library(MASS)
+library(crayon)
+library(sommer)
+
+####################### estimate phenotypes from genotyping data ############################
+
+#load data (pre-saved in the sommer package)
+data(DT_wheat) 
+
+#prepare phenotypic data
+colnames(DT_wheat) <- paste0("trait_",1:ncol(DT_wheat))
+DT_wheat <- as.data.frame(DT_wheat)
+DT_wheat$sample_id <- as.factor(rownames(DT_wheat)) 
+
+#add sample ids to genotypic data 
+rownames(GT_wheat) <- rownames(DT_wheat)
+
+#Please, take a look into genotypic data, here a bi-allelic SNP call is equal to: 
+# -1 if homozygous for one allele (e.g. AA),  1 if homozygous for the other allele (e.g. TT), and  0 if heterozygous for one allele (e.g. AT).
+
+#generate additive relationship matrix (also called K.matrix)
+K.matrix <- A.mat(GT_wheat) 
+
+#Here, I separate a group of the genotypes to predict their phenotype
+genotypes_to_predict<-sample(rownames(DT_wheat), 60, replace = FALSE)
+validation_set<-DT_wheat[genotypes_to_predict,]
+
+#take out such phenotypes from the training set
+DT_wheat[genotypes_to_predict,1:4]<-NA
+
+#run GBLUP
+model <- mmer(trait_1 ~ 1, random = ~vsr(sample_id,Gu=K.matrix), rcov=~units, data = DT_wheat, verbose = FALSE) 
+
+#get overall mean
+u <- model$Beta$Estimate
+
+#get genotypic effects for each individual (breeding values)
+geno_effects <- model$U$`u:sample_id`$trait_1
+
+#get genotypic values (phenotypic estimated values)
+estimated_phenotypes <- u + geno_effects
+
+#check predictive accuracy
+y <- estimated_phenotypes[genotypes_to_predict]
+x <- validation_set[genotypes_to_predict,"trait_1"]
+
+cor.test(y, x, method = "pearson")
+
+plot(y ~ x, xlab="Observed values", ylab="Predicted values")
+abline(lm(y ~ x), col = "blue")
+
+####################### estimate markers effects ############################
+
+##run rrBLUP
+model2 <- mmer(trait_1 ~ 1, random = ~vsr(list(GT_wheat)), rcov=~units, data = DT_wheat, verbose = FALSE)
+
+#get marker effects
+mrk_effects <-  model2$U$`u:GT_wheat`$trait_1
+
+#to calculate the phenotypic value of a samples then:
+sample_values<-unlist(lapply(genotypes_to_predict, function(x){sum(mrk_effects*GT_wheat[x,])}))
+
+#the reconstructed phenotypic values with marker effects from rrBLUP 
+#and the model estimated phenotypic values with gBLUP should be equal
+cor.test(sample_values, y, method = "pearson")
+
+plot(sample_values ~ y, xlab="rrBLUP predicted values", ylab="gBLUP predicted values")
+abline(lm(sample_values ~ y), col = "blue")
+
+

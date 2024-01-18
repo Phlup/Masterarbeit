@@ -1,8 +1,6 @@
 library(randomForest)
 library(xgboost)
 library(caret)
-library(zoo)
-source("stat_functions.R")
 
 #calculates trait values using marker effects calculated using all real populations at once
 #calculates trait correlation among parental trait values for real and simulated populations
@@ -14,144 +12,109 @@ source("stat_functions.R")
 #4. test rf on phenotypes of real population
 
 #load sim geno + marker effects
-mrk_eff <- read.csv("../stats/pheno_prediction/rrBLUP_mrk_effects_all.csv")
-effects <- mrk_eff$effect
-intercept <- mrk_eff$intercept[1]
-#read populations
-populations <- read.csv("../data/sim_data/populations.csv")
-#read genmap
-genmap <- read.csv("../data/sim_data/B73_genmap.csv")
-#read real parent genotypes
-real_parent_add <- read.csv("../data/sim_data/NAM_parent_add.csv")
-real_parent_add <- real_parent_add[,c("pop","parent",genmap$Marker)]
-#read simulated populations
-sim_populations <- read.csv("../sim_output/parent_sim/sim_populations.csv")
-#read simulated offspring genotypes
-#sim_offspring_genos <- read.csv("../data/sim_output/parent_sim/sim_offspring_genos.csv)
-sim_summary <- data.frame("pop" = sim_populations$pop, "trait_mean" = NA, "trait_max" = NA,
-                          "trait_min" = NA, "trait_var" = NA, "trait_95_perc" = NA)
-real_summary <- data.frame("pop" = populations$pop, "trait_mean" = NA, "trait_max" = NA,
-                          "trait_min" = NA, "trait_var" = NA, "trait_95_perc" = NA)
+rrblup_preds_all <- read.csv("../stats/pheno_prediction/rrBLUP_mrk_effects_all.csv")
+#read trait summary stats sim+real
+sim_pops_summary <- read.csv("../stats/pheno_prediction/sim_pops_summary.csv")
+real_summary <- read.csv("../stats/pheno_prediction/real_summary.csv")
+#read correlation features
+sim_cors <- read.csv("../stats/pheno_prediction/sim_cors.csv")
+real_cors <- read.csv("../stats/pheno_prediction/real_cors.csv")
+#read parental traits
+parent_traits <- read.csv("../stats/pheno_prediction/parent_traits.csv")
 
-#calc sim pop traits with mrk effects
-for(i in sim_populations$pop){
-  sim_add_i <- read.csv(paste("../sim_output/parent_sim/additive_encoding/add_",i,".csv", sep = ""))
-  sim_add_i <- sim_add_i[,genmap$Marker]
-  #calculate simulated offspring phenotypes
-  sim_traits <- t(apply(sim_add_i,1,function(x){effects*x}))
-  sim_phenos <- rowSums(sim_traits) + intercept
-  #calc trait dist parameters
-  sim_summary[sim_summary$pop == i, c("trait_mean", "trait_max", "trait_min", "trait_var", "trait_95_perc")] <- c(
-    mean(sim_phenos), max(sim_phenos), min(sim_phenos), var(sim_phenos), quantile(sim_phenos, probs = 0.95)
-  )
+#goal: rmse + correlation coeff + corr pval for pred + real for traits for trait mean + 95th perc for rf, xgboost, cnn, baseline.
+traits <- c("silk", "tassel", "oil", "protein", "starch")
+tasks <- c("trait_mean", "trait_95_perc")
+pred_results <- data.frame("model" = NA, "task" = NA, "trait" = NA, "rmse" = NA, "corr" = NA,
+                           "corr_p" = NA, "best_predict" = NA)
+for(i in traits){
+  real_cors_i <- real_cors[real_cors$trait == i,!colnames(real_cors) %in% c("trait")]
+  sim_cors_i <- sim_cors[sim_cors$trait == i,!colnames(sim_cors) %in% c("trait")]
+  parent_traits_i <- parent_traits[parent_traits$trait == i,]
+  effects_i <- rrblup_preds_all[rrblup_preds_all$trait == i, "effect"]
+  intercept_i <- rrblup_preds_all[rrblup_preds_all$trait == i, "intercept"][1]
+  for(j in tasks){
+    real_y <- real_summary[real_summary$trait == i, j]
+    sim_y <- sim_pops_summary[sim_pops_summary$trait == i, j]
+    model <- "RandomForest"
+    ##random forest with default params
+    #train on sim cors
+    rf <- randomForest(x = sim_cors_i, y = sim_y)
+    #predict on real trait cors
+    rf_pred <- predict(rf, real_cors_i)
+    #create pred results
+    rmse <- sqrt(mean((rf_pred - real_y)^2))
+    corr <- cor.test(rf_pred, real_y)
+    best_predict <- which.max(rf_pred) == which.max(real_y)
+    pred_results_i_j_k <- c(model, j, i, round(rmse, 3), round(corr$estimate, 3), 
+                            ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
+    pred_results <- rbind(pred_results, pred_results_i_j_k)
+    model <- "XGBoost"
+    ##xgboost with best parametrization w.r.t. grid search (see below)
+    #get parametrization from running grid search once
+    params <- list(
+      objective = "reg:squarederror",
+      nrounds = 500,
+      max_depth = 3,
+      eta = 0.1,
+      gamma = 1,
+      colsample_bytree = 1,         
+      min_child_weight = 5,
+      subsample = 0.8
+    )
+    dtrain <- xgb.DMatrix(data = as.matrix(sim_cors_i), label = sim_y)
+    xgb <- xgboost(params = params, data = dtrain, nrounds = params$nrounds)
+    xgb_pred <- predict(xgb, as.matrix(real_cors_i))
+    #create pred results
+    rmse <- sqrt(mean((xgb_pred - real_y)^2))
+    corr <- cor.test(xgb_pred, real_y)
+    best_predict <- which.max(xgb_pred) == which.max(real_y)
+    pred_results_i_j_k <- c(model, j, i, round(rmse, 3), round(corr$estimate, 3), 
+                            ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
+    pred_results <- rbind(pred_results, pred_results_i_j_k)
+    
+    model <- "baseline"
+    ##mean of parents for trait mean, 95th percentile binomial sampling parent markers
+    if(j == "trait_mean"){
+      mean_pred <- NULL
+      for(k in parent_traits_i$pop[-1]){
+        parent_cross <- parent_traits_i[parent_traits_i$pop %in% c(0,k),
+                                        !colnames(parent_traits_i) %in% c("parent","pop","trait")]
+        mean_pred <- c(mean_pred, mean(rowSums(parent_cross) + intercept_i))
+      }
+      rmse <- sqrt(mean((mean_pred - real_y)^2))
+      corr <- cor.test(mean_pred, real_y)
+      best_predict <- which.max(mean_pred) == which.max(real_y)
+      pred_results_i_j_k <- c(model, j, i, round(rmse, 3), round(corr$estimate, 3), 
+                              ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
+      pred_results <- rbind(pred_results, pred_results_i_j_k)
+    }
+    if(j == "trait_95_perc"){
+      binom_pred <- NULL
+      for(k in parent_traits_i$pop[-1]){
+        binom_sample <- sample(c(-1,1), size = length(effects), replace = TRUE, prob = c(0.5, 0.5))
+        binom_pred <- c(binom_pred, sum(effects*binom_sample) + intercept_i)
+      }
+      rmse <- sqrt(mean((binom_pred - real_y)^2))
+      corr <- cor.test(binom_pred, real_y)
+      best_predict <- which.max(binom_pred) == which.max(real_y)
+      pred_results_i_j_k <- c(model, j, i, round(rmse, 3), round(corr$estimate, 3), 
+                              ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
+      pred_results <- rbind(pred_results, pred_results_i_j_k)
+    }
+  }
 }
-write.csv(sim_summary, "../stats/pheno_prediction/sim_summary_all.csv", row.names = FALSE)
 
-#calc real pop traits with mrk effects
-for(i in populations$pop){
-  real_add_i <- read.csv(paste("../data/NAM_genotype_data/additive_encoding/pop_",i,"_add.csv", sep = ""))
-  real_add_i <- real_add_i[,genmap$Marker]
-  #calc real offspring phenotypes
-  real_traits <- t(apply(real_add_i,1,function(x){effects*x}))
-  real_phenos <- rowSums(real_traits) + intercept
-  real_summary[real_summary$pop == i, c("trait_mean", "trait_max", "trait_min", "trait_var", "trait_95_perc")] <- c(
-    mean(real_phenos), max(real_phenos), min(real_phenos), var(real_phenos), quantile(real_phenos, probs = 0.95)
-  )
-}
-write.csv(real_summary, "../stats/pheno_prediction/real_summary_all.csv", row.names = FALSE)
+write.csv(pred_results, "../stats/pheno_prediction/results/pred_results_trees_BL.csv", row.names = FALSE)
 
 
 
-#load/create df where pop is associated with parent 1 and 2 then take traits$pop %in% c(parent1, parent2)
-real_pops <- data.frame("pop" = populations$pop, "parent_1" = "B73", "parent_2" = populations$parent)
-sim_parents <- strsplit(sim_populations[, "name"], "_")
-sim_pops <- data.frame("pop" = sim_populations$pop, "parent_1" = sapply(sim_parents, "[[", 1),
-                       "parent_2" = sapply(sim_parents, "[[", 2))
+#conclusion: using trait correlation is not useful for predicting trait summary statistics
+#using rf, xgboost, baseline models dont perform well (non-trivial task)
 
-#calc traits on real genos
-real_traits <- cbind(real_parent_add[,c("pop", "parent")],
-                     t(apply(real_parent_add[,!colnames(real_parent_add) %in% c("pop","parent")],
-                             1,function(x){effects*x})))
-#calc traits on sim genos (same parental traits, different correlation)
-#sim_traits <- cbind(sim_parent_add[,c("pop", "parent")], 
-#                    t(apply(sim_parent_add[,!colnames(sim_parent_add) %in% c("pop", "parent")],
-#                            1,function(x){effects*x})))
-
-##calc rolling trait correlations on traits
-real_cors <- calc_trait_cor(traits = real_traits, populations = real_pops, window_size = 20, genmap = genmap)[-1]
-sim_cors <- calc_trait_cor(traits = real_traits, populations = sim_pops, window_size = 20, genmap = genmap)[-1]
-
-write.csv(real_cors, "../stats/pheno_prediction/real_cors.csv", row.names = FALSE)
-write.csv(sim_cors, "../stats/pheno_prediction/sim_cors.csv", row.names = FALSE)
-
-##calc parent pair traits + marker rates for sim and real
-real_parent_trait_map <- data.frame(NULL)
-for(i in real_pops$pop){
-  parents <- real_pops[real_pops$pop == i, c("parent_1", "parent_2")]
-  real_traits_i <- real_traits[real_traits$parent %in% parents, !colnames(real_traits) %in% c("pop", "parent")]
-  real_traits_i <- rbind(real_traits_i, genmap$Rate.cM.Mb.)
-  real_parent_trait_map <- rbind(real_parent_trait_map, real_traits_i)
-}
-
-sim_parent_trait_map <- data.frame(NULL)
-for(i in sim_pops$pop){
-  parents <- sim_pops[sim_pops$pop == i, c("parent_1", "parent_2")]
-  sim_traits_i <- real_traits[real_traits$parent %in% parents, !colnames(real_traits) %in% c("pop", "parent")]
-  sim_traits_i <- rbind(sim_traits_i, genmap$Rate.cM.Mb.)
-  sim_parent_trait_map <- rbind(sim_parent_trait_map, sim_traits_i)
-}
-
-write.csv(real_parent_trait_map, "../stats/pheno_prediction/real_parent_trait_map.csv", row.names = FALSE)
-write.csv(sim_parent_trait_map, "../stats/pheno_prediction/sim_parent_trait_map.csv", row.names = FALSE)
-
-##train models
-sim_pheno <- sim_summary$trait_95_perc
-#train model on simulated cors and phenotypes
-rf <- randomForest(x = sim_cors, y = sim_pheno, importance = TRUE, ntree = 500, mtry = 17)
-varImpPlot(rf)
-#predict on real trait cors
-real_predict <- predict(rf, real_cors)
-
-#rmse of real pheno and predicted phenos of rf on real parental trait cors
-real_pheno <- real_summary$trait_95_perc
-sqrt(mean((real_predict - real_pheno)^2))
-preds <- cbind(real_predict, real_pheno)
-var(preds[,1])
-var(preds[,2])
-
-#train rf for sim on sim and real on real prediction
-sim_train_x <-  sim_cors[1:50,]
-sim_train_y <- sim_pheno[1:50]
-sim_test_x <- sim_cors[51:96,]
-sim_test_y <- sim_pheno[51:96]
-
-real_train_x <-  real_cors[1:16,]
-real_train_y <- real_pheno[1:16]
-real_test_x <- real_cors[16:25,]
-real_test_y <- real_pheno[16:25]
-
-rf_real <- randomForest(x = real_train_x, y = real_train_y, importance = TRUE)
-varImpPlot(rf_sim)
-real_predict <- predict(rf_real, real_test_x)
-sqrt(mean((real_predict - real_test_y)^2))
-real_preds <- cbind(real_predict, real_test_y)
-var(real_preds[,1])
-var(real_preds[,2])
-
-rf_sim <- randomForest(x = sim_train_x, y = sim_train_y, importance = TRUE)
-varImpPlot(rf_sim)
-sim_predict <- predict(rf_sim, sim_test_x)
-
-#rmse
-sqrt(mean((sim_predict - sim_test_y)^2))
-sim_preds <- cbind(sim_predict, sim_test_y)
-var(sim_preds[,1])
-var(sim_preds[,2])
-
-
-#train xgboost model with grid search
-sim_cors$target <- sim_pheno
-real_cors$target <- real_pheno
+#train xgboost model with grid search to determine best params
+sim_cors <- sim_cors[sim_cors$trait == "silk",!colnames(sim_cors) %in% c("trait")]
+sim_cors$target <- sim_pops_summary[sim_pops_summary$trait == "silk", "trait_95_perc"]
 
 folds <- createFolds(sim_cors$target, k = 5, list = TRUE, returnTrain = FALSE)
 control_params <- trainControl(method = "cv", number = 5, index = folds)
@@ -173,12 +136,25 @@ grid_result <- train(
   tuneGrid = param_grid_xgboost,
   metric = "RMSE"
 )
+grid_result[["bestTune"]]
+##
 
-#predict with best grid searched model
-best_xgpred <- predict(grid_result, real_cors[,!colnames(real_cors) %in% c("target")])
-pred <- cbind(best_xgpred, real_pheno)
-sqrt(mean((best_xgpred - real_pheno)^2))
-#~6
+params <- list(
+  objective = "reg:squarederror",
+  nrounds = 500,
+  max_depth = 3,
+  eta = 0.1,
+  gamma = 1,
+  colsample_bytree = 1,         
+  min_child_weight = 5,
+  subsample = 0.8
+)
+sim_y  <- sim_pops_summary[sim_pops_summary$trait == "silk", "trait_95_perc"]
+# Convert data to DMatrix
+dtrain <- xgb.DMatrix(data = as.matrix(sim_cors), label = sim_y)
 
-#conclusion: using traits or features derived from that (correlation) is not useful for predicting trait summary
-#statistics, in real to real, sim to sim and sim to real prediction, using rf, xgboost and cnn (rmse ~ 15)
+# Train the XGBoost model
+model <- xgboost(params = params, data = dtrain, nrounds = params$nrounds)
+
+# Make predictions (replace 'newdata' with your test data)
+predictions <- predict(model, newdata = xgb.DMatrix(as.matrix(sim_cors)+1))
