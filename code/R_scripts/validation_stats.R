@@ -173,7 +173,7 @@ for(i in rec_param){
   rogers_cohens <- paste("median: ", median(sum_stats$rogers_cohens), ", IQR: ", IQR(sum_stats$rogers_cohens),
                      ", mean: ", signif(mean(sum_stats$rogers_cohens),3),
                      " ± ", signif(sd(sum_stats$rogers_cohens),3), sep = "")
-  results <- c(recomb_sumstats[1+j], recomb_sumstats[2+j], het_sig, het_phi, geno_sig, geno_cramersV, ks_sig,
+  results <- c(round(recomb_sumstats[1+j],3), round(recomb_sumstats[2+j],3), het_sig, het_phi, geno_sig, geno_cramersV, ks_sig,
                w1d, ld_ks_sig, ld_w1d, gc_sig, gc_cohens, rogers_sig, rogers_cohens)
   sum_results[sum_results$rec_param == i, c("recomb_mean", "recomb_num", "het_sig", "mean_sd_phi", "geno_sig",
                                             "mean_sd_cramersV", "ks_sig", "mean_sd_w1d", "ld_ks_sig",

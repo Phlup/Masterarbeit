@@ -49,6 +49,9 @@ for(i in traits){
     pred_results_i_j_k <- c(model, j, i, round(rmse, 3), round(corr$estimate, 3), 
                             ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
     pred_results <- rbind(pred_results, pred_results_i_j_k)
+    png(paste("../plots/prediction_plots/RandomForest/RF_",j,"_",i,".png",sep = ""),width = 900, height = 768)
+    plot(rf_pred, real_y, col = "blue", pch = 16, cex = 1.5, xlab = "Predicted phenotype", ylab = "True phenotype")
+    dev.off()
     model <- "XGBoost"
     ##xgboost with best parametrization w.r.t. grid search (see below)
     #get parametrization from running grid search once
@@ -72,7 +75,9 @@ for(i in traits){
     pred_results_i_j_k <- c(model, j, i, round(rmse, 3), round(corr$estimate, 3), 
                             ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
     pred_results <- rbind(pred_results, pred_results_i_j_k)
-    
+    png(paste("../plots/prediction_plots/XGBoost/XGB_",j,"_",i,".png",sep = ""),width = 900, height = 768)
+    plot(xgb_pred, real_y, col = "blue", pch = 16, cex = 1.5, xlab = "Predicted phenotype", ylab = "True phenotype")
+    dev.off()
     model <- "baseline"
     ##mean of parents for trait mean, 95th percentile binomial sampling parent markers
     if(j == "trait_mean"){
@@ -88,12 +93,15 @@ for(i in traits){
       pred_results_i_j_k <- c(model, j, i, round(rmse, 3), round(corr$estimate, 3), 
                               ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
       pred_results <- rbind(pred_results, pred_results_i_j_k)
+      png(paste("../plots/prediction_plots/baseline/BL_",j,"_",i,".png",sep = ""),width = 900, height = 768)
+      plot(mean_pred, real_y, col = "blue", pch = 16, cex = 1.5, xlab = "Predicted phenotype", ylab = "True phenotype")
+      dev.off()
     }
     if(j == "trait_95_perc"){
       binom_pred <- NULL
       for(k in parent_traits_i$pop[-1]){
-        binom_sample <- sample(c(-1,1), size = length(effects), replace = TRUE, prob = c(0.5, 0.5))
-        binom_pred <- c(binom_pred, sum(effects*binom_sample) + intercept_i)
+        binom_sample <- sample(c(-1,1), size = length(effects_i), replace = TRUE, prob = c(0.5, 0.5))
+        binom_pred <- c(binom_pred, sum(effects_i*binom_sample) + intercept_i)
       }
       rmse <- sqrt(mean((binom_pred - real_y)^2))
       corr <- cor.test(binom_pred, real_y)
@@ -101,6 +109,9 @@ for(i in traits){
       pred_results_i_j_k <- c(model, j, i, round(rmse, 3), round(corr$estimate, 3), 
                               ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
       pred_results <- rbind(pred_results, pred_results_i_j_k)
+      png(paste("../plots/prediction_plots/baseline/BL_",j,"_",i,".png",sep = ""),width = 900, height = 768)
+      plot(binom_pred, real_y, col = "blue", pch = 16, cex = 1.5, xlab = "Predicted phenotype", ylab = "True phenotype")
+      dev.off()
     }
   }
 }
@@ -137,8 +148,7 @@ grid_result <- train(
   metric = "RMSE"
 )
 grid_result[["bestTune"]]
-##
-
+##best params:
 params <- list(
   objective = "reg:squarederror",
   nrounds = 500,
@@ -149,12 +159,4 @@ params <- list(
   min_child_weight = 5,
   subsample = 0.8
 )
-sim_y  <- sim_pops_summary[sim_pops_summary$trait == "silk", "trait_95_perc"]
-# Convert data to DMatrix
-dtrain <- xgb.DMatrix(data = as.matrix(sim_cors), label = sim_y)
 
-# Train the XGBoost model
-model <- xgboost(params = params, data = dtrain, nrounds = params$nrounds)
-
-# Make predictions (replace 'newdata' with your test data)
-predictions <- predict(model, newdata = xgb.DMatrix(as.matrix(sim_cors)+1))

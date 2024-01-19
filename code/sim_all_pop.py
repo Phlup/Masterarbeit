@@ -69,7 +69,7 @@ if __name__ == '__main__':
         zero_sim = genotype_simulation(genetic_map=genmap_zero, parent_genos=parent_genos, ref_allele=ref_allele,
                                        founder_list=pop, offspring=size_dict[i], selfing_genos=5)
 
-        recomb_stat = calc_total_recomb(high_sim[1])
+        recomb_stat = calc_total_recomb(zero_sim[1])
         recomb_stats.loc[recomb_stats["pop"] == i, "mean_zero"] = recomb_stat[0]
         recomb_stats.loc[recomb_stats["pop"] == i, "num_zero"] = recomb_stat[1]
 
@@ -83,7 +83,7 @@ if __name__ == '__main__':
         mean_sim = genotype_simulation(genetic_map=genmap_mean, parent_genos=parent_genos, ref_allele=ref_allele,
                                        founder_list=pop, offspring=size_dict[i], selfing_genos=5)
 
-        recomb_stat = calc_total_recomb(high_sim[1])
+        recomb_stat = calc_total_recomb(mean_sim[1])
         recomb_stats.loc[recomb_stats["pop"] == i, "mean_mean"] = recomb_stat[0]
         recomb_stats.loc[recomb_stats["pop"] == i, "num_mean"] = recomb_stat[1]
 
