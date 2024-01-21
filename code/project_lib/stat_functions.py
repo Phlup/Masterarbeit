@@ -1,6 +1,5 @@
 import tskit
 import msprime
-import stdpopsim
 import networkx as nx
 import matplotlib.pyplot as plt
 import io

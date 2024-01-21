@@ -27,7 +27,7 @@ if __name__ == '__main__':
     mean_recomb_length = geno_sumstats[geno_sumstats["rec_param"] == "normal_rec"]["recomb_mean"]
     #kernel_y in CNN as mean markers per recombination block
     window_size = int(round(mean_recomb_length/mean_posdiff).iloc[0])
-
+    print(window_size)
     #set features for CNN (out of p1, p2, position, rate, cM, pos_diff)
     feature_combinations = list()
     feature_combinations.append(["p1", "p2"])
@@ -71,7 +71,7 @@ if __name__ == '__main__':
                 sim_x = np.array(sim_x).reshape((int(len(sim_x)/len(features)), len(features), input_y, 1))
                 real_y = real_phenos[real_phenos["trait"].isin([i])][j]
                 sim_y = sim_phenos[sim_phenos["trait"].isin([i])][j]
-                model.fit(sim_x, sim_y, epochs=10, batch_size=1)
+                model.fit(sim_x, sim_y, epochs=500, batch_size=1)
                 predictions = model.predict(real_x)
                 loss = model.evaluate(real_x, real_y)
                 rmse = np.sqrt(loss)

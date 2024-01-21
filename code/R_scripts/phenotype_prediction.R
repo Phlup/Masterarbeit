@@ -100,8 +100,12 @@ for(i in traits){
     if(j == "trait_95_perc"){
       binom_pred <- NULL
       for(k in parent_traits_i$pop[-1]){
-        binom_sample <- sample(c(-1,1), size = length(effects_i), replace = TRUE, prob = c(0.5, 0.5))
-        binom_pred <- c(binom_pred, sum(effects_i*binom_sample) + intercept_i)
+        binom_offspr <- NULL
+        for(l in 1:200){
+          sample_l <- sample(c(-1,1), size = length(effects_i), replace = TRUE, prob = c(0.5, 0.5))
+          binom_offspr <- c(binom_offspr, sum(effects_i*sample_l) + intercept_i)
+        }
+        binom_pred <- c(binom_pred, quantile(binom_offspr, probs = 0.95))
       }
       rmse <- sqrt(mean((binom_pred - real_y)^2))
       corr <- cor.test(binom_pred, real_y)
@@ -116,7 +120,7 @@ for(i in traits){
   }
 }
 
-write.csv(pred_results, "../stats/pheno_prediction/results/pred_results_trees_BL.csv", row.names = FALSE)
+write.csv(pred_results[-1,], "../stats/pheno_prediction/results/pred_results_trees_BL.csv", row.names = FALSE)
 
 
 

@@ -127,8 +127,11 @@ for(i in populations$pop){
     #generate plots for marker effects along chromosome in sim vs real pop
     png(paste("../plots/pheno_plots/",j,"/pop_",i,"_trait_cumsums.png",sep = ""),width = 900, height = 768)
     par(mfrow=c(1,2))
-    min_y <- min(rowSums(pred_real), rowSums(pred_sim)) + intercept - 1
-    max_y <- max(rowSums(pred_real), rowSums(pred_sim)) + intercept + 1
+    min_y <- min(min(real_phenos), min(sim_phenos), min(parent_phenos))
+    max_y <- max(max(real_phenos), max(sim_phenos), max(parent_phenos))
+    abs <- max_y - min_y
+    min_y <- min_y - 0.2*abs
+    max_y <- max_y + 0.2*abs
     #sim phenos
     plot(c(),xlim = c(0,marker_num), ylim = c(min_y, max_y),
          ylab = "cumulative marker effects along chromosome", xlab = "marker", main = "Simulated offspring")
@@ -218,8 +221,8 @@ for(i in traits){
                          t(apply(real_parent_add[,!colnames(real_parent_add) %in% c("pop","parent")],
                                  1,function(x){effects*x})))
   ##calc rolling trait correlations on traits
-  real_cors_i <- calc_trait_cor(traits = parent_traits_i, populations = real_pops, window_size = 20, genmap = genmap)[-1]
-  sim_cors_i <- calc_trait_cor(traits = parent_traits_i, populations = sim_pops, window_size = 20, genmap = genmap)[-1]
+  real_cors_i <- calc_trait_cor(traits = parent_traits_i, populations = real_pops, window_size = 15, genmap = genmap)[-1]
+  sim_cors_i <- calc_trait_cor(traits = parent_traits_i, populations = sim_pops, window_size = 15, genmap = genmap)[-1]
   
   parent_traits_i$trait <- i
   parent_traits <- rbind(parent_traits, parent_traits_i)

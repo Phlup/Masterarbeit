@@ -15,7 +15,7 @@ if __name__ == '__main__':
     # build artificial pop dict
     populations = pd.read_csv("data/sim_data/populations.csv")
     sim_parents = list()
-    for i in range(0, 100):
+    for i in range(0, 200):
         cross = populations["parent"].sample(n=2).reset_index(drop=True)
         cross = cross[0] + "_" + cross[1]
         sim_parents.append(cross)
