@@ -16,9 +16,6 @@ rrBLUP_phenos_all.R +
 #run phenotype prediction
 phenotype_prediction.R +
 CNN_pheno_predict.py +
-
 ##notebooks showcasing pedigree functions and genotype simulation
 pedigrees.ipynb
 genotype_sim.ipynb
-
-![alt text](https://github.com/Phlup/Masterarbeit/blob/main/sim_predict_pipeline.jpg?raw=true)
