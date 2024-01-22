@@ -3,9 +3,8 @@ library(MASS)
 library(crayon)
 library(sommer)
 
-##train rrBLUP for marker effect estimation
-##and determine best cross of sim datasets (max traits with calc marker effects)
-##calc accuracy of simulated best crosses based on real pheno max
+##not used: calculatesd rrBLUP mrk effects on all populations seperately
+#-> for all pop est. same estimates and residuals + allows trait calc on sim pops
 
 #read in NAM phenotypes per individual and mean over pop+env
 NAM_phenotypes <- read.csv("../data/NAM_phenotype_data/NAM_phenotypes.csv")

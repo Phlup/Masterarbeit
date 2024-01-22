@@ -1,5 +1,6 @@
 from project_lib.stat_functions import *
 
+# generates genotype distribution plots for simulated and real populations + summary statistics
 
 if __name__ == '__main__':
     # read genetic map

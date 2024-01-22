@@ -36,7 +36,7 @@ gen_map[, pos_diff := (shift(Position, n = -1) - Position), by = ch]
 gen_map[, cM_diff := (shift(cumulative, n = -1) - cumulative), by = ch]
 gen_map[, rate := cM_diff/(pos_diff/1000000)]
 
-#impute rates for last SNPs per chr
+#last recomb rate in contig = 0 for compatibility with msprime
 gen_map[,rate := replace(rate, is.na(rate), 0), by = ch]
 
 

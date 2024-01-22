@@ -1,5 +1,8 @@
 ##execution order:
-#get raw data (processes study data from ... and ...)
+#get raw data 
+(processes study data from Yu et al. 2008 https://academic.oup.com/genetics/article/178/1/539/6062286?login=true,
+Bukler et al. 2009 https://pubmed.ncbi.nlm.nih.gov/19661422/ and
+Cook et al. 2012 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3271770/)
 NAM_data_processing.R +
 recomb_rates.R +
 #get genotype simulation
@@ -17,3 +20,5 @@ CNN_pheno_predict.py +
 ##notebooks showcasing pedigree functions and genotype simulation
 pedigrees.ipynb
 genotype_sim.ipynb
+
+![alt text](https://github.com/Phlup/Masterarbeit/blob/main/sim_predict_pipeline.jpg?raw=true)

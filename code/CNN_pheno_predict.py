@@ -5,8 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import pearsonr
 
-##trains CNN on parental traits + genetic map features of simulated populations to predict trait summary stats
-##on real populations, scores RMSE, correlation(predictions, test_y) and if best performing population was accurately predicted
+# trains CNN on parental traits + genetic map features of simulated populations to predict trait summary stats
+# on real populations, scores RMSE, correlation(predictions, test_y) and if best performing population was accurately predicted
 
 if __name__ == '__main__':
     #load train and test data (marker traits/genmap features/correlations on sim and real populations)

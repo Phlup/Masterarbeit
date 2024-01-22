@@ -2,14 +2,12 @@ library(randomForest)
 library(xgboost)
 library(caret)
 
-#calculates trait values using marker effects calculated using all real populations at once
-#calculates trait correlation among parental trait values for real and simulated populations
-#trains rf and xgboost on simulated offspring phenotype with "ground truth" marker effects, test on real phenotypes
-#to validate that pipeline (genotype simualtion) and model (prediction on parent crosses) accurately predicts phenotype
+#trains rf and xgboost on new simulated population offspring phenotype with "ground truth" marker effects
+#test trait sumary statistics prediction on real populations
 #1. simulate parents and offspring (sim_sim_pops.py)
-#2. calculate offspring trait parameters with estimated marker effects
-#3. train rf on features of simulated parents (e.g. correlation of traits along chromosome)
-#4. test rf on phenotypes of real population
+#2. calculate offspring trait summary statistics with estimated marker effects (rrBLUP_phenos_all.R)
+#3. train rf, xgboost and BL models on features of simulated parents (correlation of parental mrk effects along chromosome)
+#4. test rf on offspring trait summary statistics of real population
 
 #load sim geno + marker effects
 rrblup_preds_all <- read.csv("../stats/pheno_prediction/rrBLUP_mrk_effects_all.csv")

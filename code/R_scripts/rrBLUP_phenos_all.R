@@ -4,6 +4,7 @@ library(crayon)
 library(sommer)
 library(zoo)
 source("stat_functions.R")
+
 ##train rrBLUP for global marker effect estimation
 ##calc trait summary stats for real+simulated+simulated parent cross populations and plot cumsum along genome
 ##calc parental trait correlations

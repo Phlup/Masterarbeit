@@ -2,8 +2,11 @@ library(openxlsx)
 library(data.table)
 
 ##clean genotype and phenotype data from studies on maize NAM population
+#Genotypes from Yu et al. 2008 https://academic.oup.com/genetics/article/178/1/539/6062286?login=true,
+#Phenotypes from Bukler et al. 2009 https://pubmed.ncbi.nlm.nih.gov/19661422/ and
+#Cook et al. 2012 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3271770/
 
-##genotype cleaning, extracts NAM parent genos, B73 reference alleles and parental cross offspring genotypes
+##Genotypes Yu et al. 2008
 #read NAM genos extract parents and b73 allele
 NAM_genos <- read.table("../data/NAM_map_and_genos-121025/NAM_SNP_genos_raw_20090921.txt",
                         row.names = 1)
@@ -55,10 +58,29 @@ size <- c(size, length(start:i+1))
 populations$size <- size[-1]
 write.csv(populations, "../data/sim_data/populations.csv", row.names = FALSE)
 
+#NAM parent genos in additive encoding
+populations <- read.csv("../data/sim_data/populations.csv")
+NAM_parent_genos <- read.csv("../data/sim_data/NAM_parent_genos.csv")
 
-##clean phenotype data, extract target vectors for offspring populations and phenotype means
+populations <- rbind(populations, c(0, NA, "B73", NA, NA))
+
+NAM_add <- NAM_parent_genos
+NAM_add <- merge(populations[,c("pop", "parent")], NAM_add, by.x = "parent", by.y = "RIL", all = TRUE)
+NAM_add <- NAM_add[!(is.na(NAM_add$pop)),]
+hets <- apply(NAM_add[3:length(NAM_add[1,])], c(1,2), function(x){ifelse(substr(x,1,1)==substr(x,3,3),NA,0)})
+homos <- t(apply(NAM_add[,3:length(NAM_add[1,])], 1, function(x){
+  ifelse(NAM_add[1,3:length(NAM_add[1,])] == x, 1, -1)}))
+homos[!is.na(hets)] <- hets[!is.na(hets)]
+NAM_add[,3:length(NAM_add[1,])] <- homos
+
+write.csv(NAM_add, "../data/sim_data/NAM_parent_add.csv", row.names = FALSE)
+
+##Phenotype data
+
+#extract target vectors for offspring populations and phenotype means
 populations <- read.csv("../data/sim_data/populations.csv")
 
+#Bukler et al. 2009
 silk <- read.table("../data/Buckler_etal_2009_Science_flowering_time_data-090807/NAM_DaysToSilk.txt",
                    header = TRUE, fill = TRUE)
 
@@ -101,6 +123,7 @@ tassel <- tassel[!(is.na(tassel$value)),]
 tassel <- tassel[!(duplicated(paste(tassel$pop, tassel$accename, tassel$env))),]
 tassel$trait <- "tassel"
 
+#Cook et al. 2012
 spo <- read.xlsx("../data/supp_pp.111.185033_185033Supplemental_Data_S1.xlsx")
 spo <- spo[spo$Rep == 1,]
 spo <- spo[,c("pop", "Geno_code", "Starch_db", "Protein_db", "Oil_db", "env")]
@@ -130,26 +153,11 @@ colnames(result) <- c("pop", "env", "trait", "trait_mean", "trait_max", "trait_m
 write.csv(NAM_phenotypes, "../data/NAM_phenotype_data/NAM_phenotypes.csv", row.names = FALSE)
 write.csv(mean_phenotypes, "../data/NAM_phenotype_data/mean_phenotypes.csv", row.names = FALSE)
 
-#NAM parent genos in additive encoding
-populations <- read.csv("../data/sim_data/populations.csv")
-NAM_parent_genos <- read.csv("../data/sim_data/NAM_parent_genos.csv")
 
-populations <- rbind(populations, c(0, NA, "B73", NA, NA))
-
-NAM_add <- NAM_parent_genos
-NAM_add <- merge(populations[,c("pop", "parent")], NAM_add, by.x = "parent", by.y = "RIL", all = TRUE)
-NAM_add <- NAM_add[!(is.na(NAM_add$pop)),]
-hets <- apply(NAM_add[3:length(NAM_add[1,])], c(1,2), function(x){ifelse(substr(x,1,1)==substr(x,3,3),NA,0)})
-homos <- t(apply(NAM_add[,3:length(NAM_add[1,])], 1, function(x){
-  ifelse(NAM_add[1,3:length(NAM_add[1,])] == x, 1, -1)}))
-homos[!is.na(hets)] <- hets[!is.na(hets)]
-NAM_add[,3:length(NAM_add[1,])] <- homos
-
-write.csv(NAM_add, "../data/sim_data/NAM_parent_add.csv", row.names = FALSE)
 ##----
-#genotpyes encoded (unexpected encoding, see test_imputed_data.R)
-#reduce nam offspring genotypes to subset
-#load NAM genos imputed
+##genotpyes encoded (unexpected encoding, see test_scripts/test_imputed_data.R)
+##reduce nam offspring genotypes to subset
+##load NAM genos imputed
 #offspring_genos <- read.xlsx("../data/NAM_map_and_genos-121025/NAM_genos_imputed_20090807.xlsx")
 #
 ##generate indices for 10 each of first 5 RILs 
@@ -167,12 +175,12 @@ write.csv(NAM_add, "../data/sim_data/NAM_parent_add.csv", row.names = FALSE)
 #write.csv(genos_reduce, "../data/test_data/genos_reduce.csv", row.names = FALSE)
 #
 #
-#get pop 1 genotypes
+##get pop 1 genotypes
 #pop_1_genos <- offspring_genos[c(3:196),]
 #colnames(pop_1_genos) <- offspring_genos[2,]
 #pop_1_genos[,c(2:1107)] <- sapply(pop_1_genos[,c(2:1107)], as.numeric)
 ##pop_1_genos[pop_1_genos == 1.5] <- 1.0
-##pop_1_genos[pop_1_genos == 0.5] <- 1.0
+#pop_1_genos[pop_1_genos == 0.5] <- 1.0
 #write.csv(pop_1_genos, "../data/test_data/pop_1_enc.csv", row.names = FALSE)
 #
 ##get pop 2 genotypes
