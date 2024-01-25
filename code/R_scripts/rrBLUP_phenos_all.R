@@ -135,31 +135,31 @@ for(i in populations$pop){
     max_y <- max_y + 0.2*abs
     #sim phenos
     plot(c(),xlim = c(0,marker_num), ylim = c(min_y, max_y),
-         ylab = "cumulative marker effects along chromosome", xlab = "marker", main = "Simulated offspring")
+         ylab = "cumulative marker effects along chromosome", xlab = "Marker", main = "Simulated offspring", cex.lab = 1.5)
     for(k in 1:length(row.names(pred_sim))){
       lines(cumsum(pred_sim[k,])+intercept, col = rgb(red = 0.1, green = 0.1, blue = 0.1, alpha = 0.7))  
     }
-    text(x = 250, paste("mean:", round(mean(sim_phenos),2 )), y = max_y)
-    text(x = 250, paste("max:", round(max(sim_phenos),2 )), y = max_y -1*((max_y-min_y)*0.05))
-    text(x = 250, paste("min:", round(min(sim_phenos),2 )), y = max_y -2*((max_y-min_y)*0.05))
-    text(x = 250, paste("var:", round(var(sim_phenos),2 )), y = max_y -3*((max_y-min_y)*0.05))
-    text(x = 250, paste("95th quantile:", round(quantile(sim_phenos, probs = 0.95),2 )), y = max_y -4*((max_y-min_y)*0.05))
+    text(x = 250, paste("mean:", round(mean(sim_phenos),2 )), y = max_y, cex = 1.2)
+    text(x = 250, paste("max:", round(max(sim_phenos),2 )), y = max_y -1*((max_y-min_y)*0.05), cex = 1.2)
+    text(x = 250, paste("min:", round(min(sim_phenos),2 )), y = max_y -2*((max_y-min_y)*0.05), cex = 1.2)
+    text(x = 250, paste("var:", round(var(sim_phenos),2 )), y = max_y -3*((max_y-min_y)*0.05), cex = 1.2)
+    text(x = 250, paste("95th quantile:", round(quantile(sim_phenos, probs = 0.95),2 )), y = max_y -4*((max_y-min_y)*0.05), cex = 1.2)
     #real phenos
     plot(c(),xlim = c(0,marker_num), ylim = c(min_y, max_y),
-         ylab = "cumulative marker effects along chromosome", xlab = "marker", main = "Real offspring")
+         ylab = "cumulative marker effects along chromosome", xlab = "Marker", main = "Real offspring", cex.lab = 1.5)
     for(k in 1:length(row.names(pred_real))){
       lines(cumsum(pred_real[k,])+intercept, col = rgb(red = 0.1, green = 0.1, blue = 0.1, alpha = 0.7))  
     }
     lines(cumsum(parent_exp[1,])+intercept, col = "blue", lwd = 5)
     lines(cumsum(parent_exp[2,])+intercept, col = "red", lwd = 5)
-    text(x = 250, paste("mean:", round(mean(real_phenos),2 )), y = max_y)
-    text(x = 250, paste("max:", round(max(real_phenos),2 )), y = max_y -1*((max_y-min_y)*0.05))
-    text(x = 250, paste("min:", round(min(real_phenos),2 )), y = max_y -2*((max_y-min_y)*0.05))
-    text(x = 250, paste("var:", round(var(real_phenos),2 )), y = max_y -3*((max_y-min_y)*0.05))
-    text(x = 250, paste("95th quantile:", round(quantile(real_phenos, probs = 0.95),2 )), y = max_y -4*((max_y-min_y)*0.05))
-    text(x = 250, paste("parent mean:", round(mean(parent_phenos), 2)), y = max_y -5*((max_y-min_y)*0.05))
+    text(x = 250, paste("mean:", round(mean(real_phenos),2 )), y = max_y, cex = 1.2)
+    text(x = 250, paste("max:", round(max(real_phenos),2 )), y = max_y -1*((max_y-min_y)*0.05), cex = 1.2)
+    text(x = 250, paste("min:", round(min(real_phenos),2 )), y = max_y -2*((max_y-min_y)*0.05), cex = 1.2)
+    text(x = 250, paste("var:", round(var(real_phenos),2 )), y = max_y -3*((max_y-min_y)*0.05), cex = 1.2)
+    text(x = 250, paste("95th quantile:", round(quantile(real_phenos, probs = 0.95),2 )), y = max_y -4*((max_y-min_y)*0.05), cex = 1.2)
+    text(x = 250, paste("parent mean:", round(mean(parent_phenos), 2)), y = max_y -5*((max_y-min_y)*0.05), cex = 1.2)
     legend("bottomright", legend = c("B73 traits", paste(populations[populations$pop == i, "parent"], "traits"),
-                                     "offspring traits"), col = c("blue","red","black"), lty = 1, lwd = c(3,3,1))
+                                     "offspring traits"), col = c("blue","red","black"), lty = 1, lwd = c(3,3,1), cex = 1.5)
     dev.off()
   }
 }

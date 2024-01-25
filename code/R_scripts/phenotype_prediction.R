@@ -48,7 +48,8 @@ for(i in traits){
                             ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
     pred_results <- rbind(pred_results, pred_results_i_j_k)
     png(paste("../plots/prediction_plots/RandomForest/RF_",j,"_",i,".png",sep = ""),width = 900, height = 768)
-    plot(rf_pred, real_y, col = "blue", pch = 16, cex = 1.5, xlab = "Predicted phenotype", ylab = "True phenotype")
+    plot(rf_pred, real_y, col = "blue", pch = 16, cex = 2.5, xlab = "Predicted phenotype", ylab = "True phenotype",
+         cex.lab = 1.5)
     dev.off()
     model <- "XGBoost"
     ##xgboost with best parametrization w.r.t. grid search (see below)
@@ -74,7 +75,8 @@ for(i in traits){
                             ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
     pred_results <- rbind(pred_results, pred_results_i_j_k)
     png(paste("../plots/prediction_plots/XGBoost/XGB_",j,"_",i,".png",sep = ""),width = 900, height = 768)
-    plot(xgb_pred, real_y, col = "blue", pch = 16, cex = 1.5, xlab = "Predicted phenotype", ylab = "True phenotype")
+    plot(xgb_pred, real_y, col = "blue", pch = 16, cex = 2.5, xlab = "Predicted phenotype", ylab = "True phenotype",
+         cex.lab = 1.5)
     dev.off()
     model <- "baseline"
     ##mean of parents for trait mean, 95th percentile binomial sampling parent markers
@@ -92,7 +94,8 @@ for(i in traits){
                               ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
       pred_results <- rbind(pred_results, pred_results_i_j_k)
       png(paste("../plots/prediction_plots/baseline/BL_",j,"_",i,".png",sep = ""),width = 900, height = 768)
-      plot(mean_pred, real_y, col = "blue", pch = 16, cex = 1.5, xlab = "Predicted phenotype", ylab = "True phenotype")
+      plot(mean_pred, real_y, col = "blue", pch = 16, cex = 2.5, xlab = "Predicted phenotype", ylab = "True phenotype",
+           cex.lab = 1.5)
       dev.off()
     }
     if(j == "trait_95_perc"){
@@ -112,7 +115,8 @@ for(i in traits){
                               ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
       pred_results <- rbind(pred_results, pred_results_i_j_k)
       png(paste("../plots/prediction_plots/baseline/BL_",j,"_",i,".png",sep = ""),width = 900, height = 768)
-      plot(binom_pred, real_y, col = "blue", pch = 16, cex = 1.5, xlab = "Predicted phenotype", ylab = "True phenotype")
+      plot(binom_pred, real_y, col = "blue", pch = 16, cex = 2.5, xlab = "Predicted phenotype", ylab = "True phenotype",
+           cex.lab = 1.5)
       dev.off()
     }
   }

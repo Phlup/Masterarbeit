@@ -12,17 +12,18 @@ plot_ld_decay <- function(real, sim, ks_p, w1d, pop, out_path){
     geom_smooth(data = sim, aes(d, r2), method = "loess", se = FALSE, color = "darkorange", span = 0.2) +
     theme_minimal() +
     coord_cartesian(xlim = c(0, 100), ylim = c(0, 1)) +
-    labs(title = paste("LD decay of real and simulated genotypes for population",pop), x = "Distance in cM", y = expression(r^2)) +
+    labs(x = "Distance in cM", y = expression(r^2)) +
     theme(plot.title = element_text(hjust = 0.5),
           legend.box.background = element_rect(color = "grey", linewidth = 1),
           legend.background = element_rect(fill = "white", color = NA),
-          legend.position = c(0.85,0.85)) +
+          legend.position = c(0.85,0.85),
+          text = element_text(size = 18)) +
     scale_color_manual(name = NULL, values = c("Real genotypes" = "blue", "Simulated genotypes" = "orange"),
                        guide = guide_legend(override.aes = list(alpha = 0.7))) +
     annotate("text", x = 90, y = 0.75, label = paste("KS Test P-Value: ", ks_p),
-             size = 3, color = "black") +
+             size = 4, color = "black") +
     annotate("text", x = 90, y = 0.70, label = paste("Wasserstein Distance: ", w1d),
-             size = 3, color = "black")
+             size = 4, color = "black")
   
   ggsave(out_path, plot, dpi = 300, width = 8, height = 6, units = "in", device = "png", bg = "white")
 }
@@ -35,6 +36,7 @@ plot_rogers_dist <- function(real, sim, out_path) {
   )
   plot <- ggboxplot(df, x = "Group", y = "Value", color = "Group", palette = c("blue", "orange")) +
     labs(x = "", y = "Rogers distance") + 
+    theme(text = element_text(size=18))+
     stat_compare_means(method = "t.test", comparisons = list(c("Real genotypes", "Simulated genotypes")))
 
   ggsave(out_path, plot, dpi = 300, width = 8, height = 6, units = "in", device = "png", bg = "white")

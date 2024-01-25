@@ -1,26 +1,26 @@
 {
-    "id": "E4F22D56",
-    "path": "C:/Users/PHLUP/Masterarbeit/R_scripts/NAM_data_processing.R",
-    "project_path": "NAM_data_processing.R",
+    "id": "A85B2507",
+    "path": "C:/Users/PHLUP/Masterarbeit/R_scripts/stat_functions.R",
+    "project_path": "stat_functions.R",
     "type": "r_source",
     "hash": "0",
     "contents": "",
     "dirty": false,
-    "created": 1705936620542.0,
+    "created": 1706113600301.0,
     "source_on_save": false,
-    "relative_order": 3,
+    "relative_order": 5,
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "183,25",
-        "scrollLine": "26"
+        "cursorPosition": "18,41",
+        "scrollLine": "10"
     },
     "folds": "",
-    "lastKnownWriteTime": 1705925912,
+    "lastKnownWriteTime": 1706179290,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1705925912,
+    "last_content_update": 1706179290758,
     "read_only": false,
     "read_only_alternatives": []
 }

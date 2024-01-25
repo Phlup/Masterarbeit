@@ -11,12 +11,13 @@ import scipy.stats as stats
 import seaborn as sns
 
 #draw pedigree
-def draw_pedigree(ped_ts: tskit.TableCollection) -> None:
+def draw_pedigree(ped_ts: tskit.TableCollection, out_path = str) -> None:
     """
     Draw a pedigree using NetworkX and matplotlib.
 
     Parameters:
         ped_ts (tskit.TableCollection): A table collection representing the pedigree.
+        out_path (str): Output path for the pedigree plot.
 
     Returns:
         None, displays plot
@@ -33,10 +34,10 @@ def draw_pedigree(ped_ts: tskit.TableCollection) -> None:
     colours = plt.rcParams['axes.prop_cycle'].by_key()['color']
     node_colours = [colours[node_attr["population"]] for node_attr in G.nodes.values()]
     nx.draw_networkx(G, pos, with_labels=True, node_color=node_colours)
-    plt.show()
+    plt.savefig(out_path, format="png")
 
 #print ancestry
-def draw_ancestry(ts: tskit.TreeSequence, x_size: int = 3000, y_size: int = 400) -> None:
+def draw_ancestry(ts: tskit.TreeSequence, x_size: int = 3000, y_size: int = 400, out_path = None) -> None:
     """
     Print the ancestry of individuals in the tree sequence as ancestral recombination graph (ARG).
 
@@ -44,12 +45,13 @@ def draw_ancestry(ts: tskit.TreeSequence, x_size: int = 3000, y_size: int = 400)
         ts (tskit.TreeSequence): A tree sequence.
         x_size (int): Size of x dimension.
         y_size (int): Size of y dimension.
-
+        out_path (None/str): Output path for the ancestry plot.
     Returns:
         None, displays plot
     """
     node_labels = {node.id: f"{node.individual}({node.id})" for node in ts.nodes()}
-    SVG(ts.draw_svg(y_axis=True,  node_labels=node_labels, size=(x_size,y_size)))
+    SVG(ts.draw_svg(path = out_path, y_axis=True,  node_labels=node_labels, size=(x_size,y_size)))
+    
 
 #calculate recombination tract means and events per ARG
 def calc_mean_recomb(arg: tskit.TreeSequence) -> tuple:
@@ -186,7 +188,7 @@ def summary_plot(real_additive: pd.DataFrame, sim_additive: pd.DataFrame, pop_nu
     sns.histplot(real_sum, kde = True, label = "Real genotypes", color = "blue", bins = bins, alpha = 0.5)
     sns.histplot(sim_sum, kde = True, label = "Simulated genotypes", color = "orange", bins = bins, alpha = 0.5)
     plt.legend(loc = 'upper right')
-    plt.title("Histograms, KDEs and summary statistics of real and simulated genotypes for population " + str(pop_num))
+    #plt.title("Histograms, KDEs and summary statistics of real and simulated genotypes for population " + str(pop_num))
     plt.xlabel("Sum of additive encoding per individual")
     ks_text = f'KS Test P-Value: {p_value:.3f}' if p_value >= 0.001 else f'KS Test P-Value: <0.001'
     plt.text(0.05, 0.95, ks_text, 
