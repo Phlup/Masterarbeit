@@ -113,7 +113,6 @@ trees_mean <- pred_results_trees[pred_results_trees$task == "trait_mean",]
 trees_mean$model <- ifelse(trees_mean$model == "baseline", "Baseline", trees_mean$model)
 CNN_mean <- pred_results_CNN[pred_results_CNN$task == "trait_mean",]
 mean_CNN_res <- CNN_mean[CNN_mean$model %in% c("p1_p2","p1_p2_rate", "corr"),]
-mean_CNN_app
 trait_order <- c("Silk", "Tassel", "Oil", "Protein", "Starch")
 mean_res <- rbind(trees_mean, mean_CNN_res)
 mean_res$trait <- str_to_title(mean_res$trait)
@@ -128,13 +127,25 @@ mean_res <- mean_res[,!colnames(mean_res) %in% "task"]
 colnames(mean_res) <- c("Model", "Trait", "RMSE", "Corr. coef.", "p Corr.", "Best predict")
 print(xtable(mean_res), include.rownames = FALSE)
 
-
+mean_CNN_app <- CNN_mean[!(CNN_mean$model %in% c("p1_p2","p1_p2_rate", "corr")),]
+mean_CNN_app$trait <- str_to_title(mean_CNN_app$trait)
+mean_CNN_app$trait <- factor(mean_CNN_app$trait, levels = trait_order)
+mean_CNN_app <- mean_CNN_app[order(mean_CNN_app[,"trait"]),]
+mean_CNN_app$best_predict <- gsub("(?i)FALSE", "No", mean_CNN_app$best_predict)
+mean_CNN_app$best_predict <- gsub("(?i)TRUE", "Yes", mean_CNN_app$best_predict)
+mean_CNN_app$corr <- ifelse(is.na(mean_CNN_app$corr) ,"NA",mean_CNN_app$corr)
+mean_CNN_app$model <- ifelse(mean_CNN_app$model == "p1_p2_cM", "CNN(p1,p2,cM)", 
+                         ifelse(mean_CNN_app$model == "p1_p2_position", "CNN(p1,p2,position)",
+                                ifelse(mean_CNN_app$model == "p1_p2_pos_diff", "CNN(p1,p2,interval)", 
+                                       ifelse(mean_CNN_app$model == "p1_p2_pos_diff_rate", "CNN(p1,p2,interval,rate)", mean_CNN_app$model))))
+mean_CNN_app <- mean_CNN_app[,!colnames(mean_CNN_app) %in% "task"]
+colnames(mean_CNN_app) <- c("Model", "Trait", "RMSE", "Corr. coef.", "p Corr.", "Best predict")
+print(xtable(mean_CNN_app), include.rownames = FALSE)
 
 trees_95 <- pred_results_trees[pred_results_trees$task == "trait_95_perc",]
 trees_95$model <- ifelse(trees_95$model == "baseline", "Baseline", trees_mean$model)
 CNN_95 <- pred_results_CNN[pred_results_CNN$task == "trait_95_perc",]
 CNN_95_res <- CNN_95[CNN_95$model %in% c("p1_p2","p1_p2_rate", "corr"),]
-CNN_95_app
 trait_order <- c("Silk", "Tassel", "Oil", "Protein", "Starch")
 res_95 <- rbind(trees_95, CNN_95_res)
 res_95$trait <- str_to_title(res_95$trait)
@@ -149,6 +160,18 @@ res_95 <- res_95[,!colnames(res_95) %in% "task"]
 colnames(res_95) <- c("Model", "Trait", "RMSE", "Corr. coef.", "p Corr.", "Best predict")
 print(xtable(res_95), include.rownames = FALSE)
 
-
-
+CNN_95_app <- CNN_95[!(CNN_95$model %in% c("p1_p2","p1_p2_rate", "corr")),]
+CNN_95_app$trait <- str_to_title(CNN_95_app$trait)
+CNN_95_app$trait <- factor(CNN_95_app$trait, levels = trait_order)
+CNN_95_app <- CNN_95_app[order(CNN_95_app[,"trait"]),]
+CNN_95_app$best_predict <- gsub("(?i)FALSE", "No", CNN_95_app$best_predict)
+CNN_95_app$best_predict <- gsub("(?i)TRUE", "Yes", CNN_95_app$best_predict)
+CNN_95_app$corr <- ifelse(is.na(CNN_95_app$corr) ,"NA",CNN_95_app$corr)
+CNN_95_app$model <- ifelse(CNN_95_app$model == "p1_p2_cM", "CNN(p1,p2,cM)", 
+                             ifelse(CNN_95_app$model == "p1_p2_position", "CNN(p1,p2,position)",
+                                    ifelse(CNN_95_app$model == "p1_p2_pos_diff", "CNN(p1,p2,interval)", 
+                                           ifelse(CNN_95_app$model == "p1_p2_pos_diff_rate", "CNN(p1,p2,interval,rate)", CNN_95_app$model))))
+CNN_95_app <- CNN_95_app[,!colnames(CNN_95_app) %in% "task"]
+colnames(CNN_95_app) <- c("Model", "Trait", "RMSE", "Corr. coef.", "p Corr.", "Best predict")
+print(xtable(CNN_95_app), include.rownames = FALSE)
 

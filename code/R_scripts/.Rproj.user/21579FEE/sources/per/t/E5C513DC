@@ -3,7 +3,7 @@
     "path": "C:/Users/PHLUP/Masterarbeit/R_scripts/validation_stats.R",
     "project_path": "validation_stats.R",
     "type": "r_source",
-    "hash": "0",
+    "hash": "7639265",
     "contents": "",
     "dirty": false,
     "created": 1706113599411.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "6,0",
-        "scrollLine": "16"
+        "cursorPosition": "111,4",
+        "scrollLine": "0"
     },
     "folds": "",
-    "lastKnownWriteTime": 1706179264,
+    "lastKnownWriteTime": 1706199589,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1706179264841,
+    "last_content_update": 1706199589732,
     "read_only": false,
     "read_only_alternatives": []
 }

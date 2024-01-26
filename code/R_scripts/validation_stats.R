@@ -108,8 +108,8 @@ for(i in rec_param){
     rogers_p <- t.test(dist_sim, dist_real)$p.value
     rogers_cohens <- cohens_d(dist_sim, dist_real)$Cohens_d
     
-    #plot_rogers_dist(real = dist_real, sim = dist_sim, 
-    #                 out_path = paste("../plots/popgen_plots/rogers_dist/",i,"/rogers_dist_",j,".png", sep = ""))
+    plot_rogers_dist(real = dist_real, sim = dist_sim, 
+                     out_path = paste("../plots/popgen_plots/rogers_dist/",i,"/rogers_dist_",j,".png", sep = ""))
     
     plot_ld_decay(real = real_r2_D, sim = sim_r2_D, ks_p = ifelse(ld_ks_p < 0.001, "<0.001", round(ld_ks_p,3)),
                   w1d = round(ld_w1d,2), pop = j,
@@ -128,7 +128,7 @@ for(i in rec_param){
     
   }  
   print("finished")
-  #write.csv(sum_stats, paste("../stats/summary_stats/sum_stats_",i,".csv", sep = ""), row.names = FALSE)
+  write.csv(sum_stats, paste("../stats/summary_stats/sum_stats_",i,".csv", sep = ""), row.names = FALSE)
 }
 
 #read in sum stats to compare rec scenarios
