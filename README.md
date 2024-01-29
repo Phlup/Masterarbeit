@@ -32,7 +32,7 @@ See below for an overview of the file structure, execution order of scripts to r
 			- cleaned data necessary for genotype simulation	  
 		- test_data/	  
 			- data for testing genotype simulation methods	  
-		- supp_pp.111.185033_185033Supplemental_Data_S1.xlsx relevant data from (3)	  
+		- supp_pp.111.185033_185033Supplemental_Data_S1.xlsx - relevant data from (3)	  
 	- plots/	  
 		- collects plots from ARGs, pedigrees, genotype distributions, traits (cumulative sum and summary statistics), 	  
 		- population genetics (LD-decay and rogers distance) and phenotype prediction scatter plots	  
@@ -68,12 +68,12 @@ Science. 2009 Aug 7;325(5941):714-8. doi: 10.1126/science.1174276.
 Cook et al. 2012, Plant Physiol. 2012 Feb; 158(2): 824–834. doi: 10.1104/pp.111.185033
 
 ## Reproduction of results:
-.py:
-Redo the conda environment using the enivornment.yaml file:
-conda env create -f environment.yaml
-Then use the interpreter of that environment to run .py or .ipynb files
-.R:
-Install packages found in .R scripts with install.packages("pkg")
+.py:  
+Redo the conda environment using the enivornment.yaml file:  
+conda env create -f environment.yaml  
+Then use the interpreter of that environment to run .py or .ipynb files  
+.R:  
+Install packages found in .R scripts with install.packages("pkg")  
 
 ### execution order:
 #### get raw data 
