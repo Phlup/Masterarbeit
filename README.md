@@ -10,15 +10,15 @@ See below for an overview of the file structure, execution order of scripts to r
 
 
 ## Project code and data structure:	
--code/	  
-	-R_scripts/	  
-		-NAM_data_processing.R - Processes genotype and phenotype data from (1), (2) and (3)	  
-		-phenotype_prediction.R - phenotype prediction based on RandomForest, XGBoost and baseline models	  
-		-recomb_rates.R - Processes genetic map from (1) to get cM/Mb rates necessary for msprime	  
-		-rrBLUP_phenos_all.R - estimates rrBLUP marker effects and calculates additive traits and summary statistics for real and simulated populations	  
-		-stat_functions.R - provides functions for validation_stats.R and rrBLUP_phenos_all.R	  
-		-validation_stats.R - calculates statistics to validate genotype simulation	  
-		-xtables.R - generates tables for thesis	  
+- code/	  
+	- R_scripts/	  
+		- NAM_data_processing.R - Processes genotype and phenotype data from (1), (2) and (3)	  
+		- phenotype_prediction.R - phenotype prediction based on RandomForest, XGBoost and baseline models	  
+		- recomb_rates.R - Processes genetic map from (1) to get cM/Mb rates necessary for msprime	  
+		- rrBLUP_phenos_all.R - estimates rrBLUP marker effects and calculates additive traits and summary statistics for real and simulated populations	  
+		- stat_functions.R - provides functions for validation_stats.R and rrBLUP_phenos_all.R	  
+		- validation_stats.R - calculates statistics to validate genotype simulation	  
+		- xtables.R - generates tables for thesis	  
 	-data/ 	  
 		-Buckler_etal_2009_Science_flowering_time_data-090807/	  
 			-relevant data from (2)	  
