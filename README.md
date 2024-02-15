@@ -58,8 +58,8 @@ See below for an overview of the file structure, execution order of scripts to r
 	- pedigrees.ipynb - demonstrates pedigree generating functions functionality	  
 
 ## Bibliography
-(1): Genetic Design and Statistical Power of Nested Association Mapping in Maize,
-Yu et al. 2008, Genetics, Volume 178, Issue 1. https://doi.org/10.1534/genetics.107.074245
+(1): Genetic properties of the maize nested association mapping population,
+McMullen et al. 2009, Science. 2009 Aug 7;325(5941):737-40. doi: 10.1126/science.1174320
 
 (2): The genetic architecture of maize flowering time, Buckler et al. 2009, 
 Science. 2009 Aug 7;325(5941):714-8. doi: 10.1126/science.1174276.
