@@ -304,7 +304,7 @@ def additive_encoding(ref: pd.DataFrame, genotypes: pd.DataFrame) -> pd.DataFram
     melted = genotypes.melt(id_vars=["individual"], var_name = "SNP", value_name = "sim_allele")
     merged = pd.merge(ref, melted, on = "SNP", how = "inner")
     merged["Match"] = merged["B73"] == merged["sim_allele"]
-    merged["Value"] = np.where(merged["sim_allele"].str[0] == merged["sim_allele"].str[1], np.where(merged["Match"] == True, -1, 1), 0)
+    merged["Value"] = np.where(merged["sim_allele"].str[0] == merged["sim_allele"].str[1], np.where(merged["Match"] == True, 1, -1), 0)
     geno_add = merged.pivot(index = "individual", columns = "SNP", values = "Value").reset_index()
     
     return(geno_add)

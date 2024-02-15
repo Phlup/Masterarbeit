@@ -1,5 +1,5 @@
 ## Description
-This is the code and data repository for a population genetics-based genotype simulator and ML-based phenotype prediction pipeline for plant breeding.
+This is the code and data repository for an efficient genotype simulator for machine learning-based phenotype prediction in plant breeding schemes.
 The pipeline is capable of effectively simulating the development of plant breeding populations across different mating designs and species-specific recombination parameters.
 Given estimated marker effects in an additive phenotype model, it is capable of predicting phenotypic summary statistics based on genotypic data of potential parent crosses
 and their simulated offspring. The method is validated on genotypic and phenotypic data of multiple studies on 25 maize NAM populations across multiple phenotypic traits

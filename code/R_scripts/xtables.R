@@ -49,7 +49,7 @@ sim_pops <- rbind(sim_pops,rep(NA,3))
 
 print(xtable(cbind(sim_pops[1:55,], sim_pops[56:110,], sim_pops[111:165,])), include.rownames = FALSE)
 
-##sort rrblup summary trait table to show best performing populations.
+##rrblup summary trait table to show best performing populations.
 real_summary <- read.csv("../stats/pheno_prediction/real_summary.csv")
 sim_summary <- read.csv("../stats/pheno_prediction/sim_summary.csv")
 real_mean <- real_summary[,c("pop", "trait", "trait_mean")]
@@ -103,6 +103,29 @@ sim_95_wide <- reshape(
 colnames(sim_95_wide) <- c("Population", "Silk", "Tassel", "Oil", "Protein", "Starch")
 
 print(xtable(cbind(real_95_wide, sim_95_wide[-1])), include.rownames=FALSE)
+
+
+#plot 95th vs mean per trait
+png(paste("../plots/pheno_plots/silk_95_mean.png",sep = ""),width = 930, height = 768)
+plot(real_mean_wide$Silk, real_95_wide$Silk, col = "blue", pch = 16, cex = 2.5, xlab = "Population mean", ylab = "Population 95th percentile",
+     cex.lab = 1.5, cex.axis = 1.5)
+dev.off()
+png(paste("../plots/pheno_plots/tassel_95_mean.png",sep = ""),width = 930, height = 768)
+plot(real_mean_wide$Tassel, real_95_wide$Tassel, col = "blue", pch = 16, cex = 2.5, xlab = "Population mean", ylab = "Population 95th percentile",
+     cex.lab = 1.5, cex.axis = 1.5)
+dev.off()
+png(paste("../plots/pheno_plots/oil_95_mean.png",sep = ""),width = 930, height = 768)
+plot(real_mean_wide$Oil, real_95_wide$Oil, col = "blue", pch = 16, cex = 2.5, xlab = "Population mean", ylab = "Population 95th percentile",
+     cex.lab = 1.5, cex.axis = 1.5)
+dev.off()
+png(paste("../plots/pheno_plots/protein_95_mean.png",sep = ""),width = 930, height = 768)
+plot(real_mean_wide$Protein, real_95_wide$Protein, col = "blue", pch = 16, cex = 2.5, xlab = "Population mean", ylab = "Population 95th percentile",
+     cex.lab = 1.5, cex.axis = 1.5)
+dev.off()
+png(paste("../plots/pheno_plots/starch_95_mean.png",sep = ""),width = 930, height = 768)
+plot(real_mean_wide$Starch, real_95_wide$Starch, col = "blue", pch = 16, cex = 2.5, xlab = "Population mean", ylab = "Population 95th percentile",
+     cex.lab = 1.5, cex.axis = 1.5)
+dev.off()
 
 
 pred_results_trees <- read.csv("../stats/pheno_prediction/results/pred_results_trees_BL.csv")

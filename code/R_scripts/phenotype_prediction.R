@@ -47,9 +47,9 @@ for(i in traits){
     pred_results_i_j_k <- c(model, j, i, round(rmse, 3), round(corr$estimate, 3), 
                             ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
     pred_results <- rbind(pred_results, pred_results_i_j_k)
-    png(paste("../plots/prediction_plots/RandomForest/RF_",j,"_",i,".png",sep = ""),width = 900, height = 768)
+    png(paste("../plots/prediction_plots/RandomForest/RF_",j,"_",i,".png",sep = ""),width = 930, height = 768)
     plot(rf_pred, real_y, col = "blue", pch = 16, cex = 2.5, xlab = "Predicted phenotype", ylab = "True phenotype",
-         cex.lab = 1.5)
+         cex.lab = 1.5, cex.axis = 1.5)
     dev.off()
     model <- "XGBoost"
     ##xgboost with best parametrization w.r.t. grid search (see below)
@@ -74,9 +74,9 @@ for(i in traits){
     pred_results_i_j_k <- c(model, j, i, round(rmse, 3), round(corr$estimate, 3), 
                             ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
     pred_results <- rbind(pred_results, pred_results_i_j_k)
-    png(paste("../plots/prediction_plots/XGBoost/XGB_",j,"_",i,".png",sep = ""),width = 900, height = 768)
+    png(paste("../plots/prediction_plots/XGBoost/XGB_",j,"_",i,".png",sep = ""),width = 930, height = 768)
     plot(xgb_pred, real_y, col = "blue", pch = 16, cex = 2.5, xlab = "Predicted phenotype", ylab = "True phenotype",
-         cex.lab = 1.5)
+         cex.lab = 1.5, cex.axis = 1.5)
     dev.off()
     model <- "baseline"
     ##mean of parents for trait mean, 95th percentile binomial sampling parent markers
@@ -93,9 +93,9 @@ for(i in traits){
       pred_results_i_j_k <- c(model, j, i, round(rmse, 3), round(corr$estimate, 3), 
                               ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
       pred_results <- rbind(pred_results, pred_results_i_j_k)
-      png(paste("../plots/prediction_plots/baseline/BL_",j,"_",i,".png",sep = ""),width = 900, height = 768)
+      png(paste("../plots/prediction_plots/baseline/BL_",j,"_",i,".png",sep = ""),width = 930, height = 768)
       plot(mean_pred, real_y, col = "blue", pch = 16, cex = 2.5, xlab = "Predicted phenotype", ylab = "True phenotype",
-           cex.lab = 1.5)
+           cex.lab = 1.5, cex.axis = 1.5)
       dev.off()
     }
     if(j == "trait_95_perc"){
@@ -114,10 +114,32 @@ for(i in traits){
       pred_results_i_j_k <- c(model, j, i, round(rmse, 3), round(corr$estimate, 3), 
                               ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
       pred_results <- rbind(pred_results, pred_results_i_j_k)
-      png(paste("../plots/prediction_plots/baseline/BL_",j,"_",i,".png",sep = ""),width = 900, height = 768)
+      png(paste("../plots/prediction_plots/baseline/BL_",j,"_",i,".png",sep = ""),width = 930, height = 768)
       plot(binom_pred, real_y, col = "blue", pch = 16, cex = 2.5, xlab = "Predicted phenotype", ylab = "True phenotype",
-           cex.lab = 1.5)
+           cex.lab = 1.5, cex.axis = 1.5)
       dev.off()
+      #binomial sampling of window size alleles, performs equal to marker-wise sampling, not included in thesis
+      #binom_window <- NULL
+      #for(k in parent_traits_i$pop[-1]){
+      #  window_offspr <- NULL
+      #  for(l in 1:200){
+      #    windows <- round(length(effects_i)/15)
+      #    sample_l <- rep(sample(c(-1,1), size = 15, replace = TRUE, prob = c(0.5,0.5)), each = windows)
+      #    sample_l <- sample_l[1:length(effects_i)]
+      #    window_offspr <- c(window_offspr, sum(effects_i*sample_l) + intercept_i)
+      #  }
+      #  binom_window <- c(binom_window, quantile(window_offspr, probs = 0.95))
+      #}
+      #rmse <- sqrt(mean((binom_window - real_y)^2))
+      #corr <- cor.test(binom_window, real_y)
+      #best_predict <- which.max(binom_window) == which.max(real_y)
+      #pred_results_i_j_k <- c("binom_window", j, i, round(rmse, 3), round(corr$estimate, 3), 
+      #                        ifelse(corr$p.value < 0.001, "<0.001", round(corr$p.value,3)), best_predict)
+      #pred_results <- rbind(pred_results, pred_results_i_j_k)
+      #png(paste("../plots/prediction_plots/baseline/BL_window_",j,"_",i,".png",sep = ""),width = 930, height = 768)
+      #plot(binom_window, real_y, col = "blue", pch = 16, cex = 2.5, xlab = "Predicted phenotype", ylab = "True phenotype",
+      #     cex.lab = 1.5, cex.axis = 1.5)
+      #dev.off()
     }
   }
 }
@@ -130,39 +152,38 @@ write.csv(pred_results[-1,], "../stats/pheno_prediction/results/pred_results_tre
 #using rf, xgboost, baseline models dont perform well (non-trivial task)
 
 #train xgboost model with grid search to determine best params
-sim_cors <- sim_cors[sim_cors$trait == "silk",!colnames(sim_cors) %in% c("trait")]
-sim_cors$target <- sim_pops_summary[sim_pops_summary$trait == "silk", "trait_95_perc"]
-
-folds <- createFolds(sim_cors$target, k = 5, list = TRUE, returnTrain = FALSE)
-control_params <- trainControl(method = "cv", number = 5, index = folds)
-
-param_grid_xgboost <- expand.grid(
-  eta = c(0.01, 0.1, 0.3),
-  max_depth = c(3, 6, 9),
-  subsample = c(0.8, 1.0),
-  colsample_bytree = c(0.8, 1.0),
-  gamma = c(0, 1, 5),
-  min_child_weight = c(1, 5, 10),
-  nrounds = 500
-)
-grid_result <- train(
-  method = "xgbTree",
-  x = sim_cors[,!colnames(sim_cors) %in% c("target")],
-  y = sim_cors$target,
-  trControl = control_params,
-  tuneGrid = param_grid_xgboost,
-  metric = "RMSE"
-)
-grid_result[["bestTune"]]
-##best params:
-params <- list(
-  objective = "reg:squarederror",
-  nrounds = 500,
-  max_depth = 3,
-  eta = 0.1,
-  gamma = 1,
-  colsample_bytree = 1,         
-  min_child_weight = 5,
-  subsample = 0.8
-)
-
+#sim_cors <- sim_cors[sim_cors$trait == "silk",!colnames(sim_cors) %in% c("trait")]
+#sim_cors$target <- sim_pops_summary[sim_pops_summary$trait == "silk", "trait_95_perc"]
+#
+#folds <- createFolds(sim_cors$target, k = 5, list = TRUE, returnTrain = FALSE)
+#control_params <- trainControl(method = "cv", number = 5, index = folds)
+#
+#param_grid_xgboost <- expand.grid(
+#  eta = c(0.01, 0.1, 0.3),
+#  max_depth = c(3, 6, 9),
+#  subsample = c(0.8, 1.0),
+#  colsample_bytree = c(0.8, 1.0),
+#  gamma = c(0, 1, 5),
+#  min_child_weight = c(1, 5, 10),
+#  nrounds = 500
+#)
+#grid_result <- train(
+#  method = "xgbTree",
+#  x = sim_cors[,!colnames(sim_cors) %in% c("target")],
+#  y = sim_cors$target,
+#  trControl = control_params,
+#  tuneGrid = param_grid_xgboost,
+#  metric = "RMSE"
+#)
+#grid_result[["bestTune"]]
+###best params:
+#params <- list(
+#  objective = "reg:squarederror",
+#  nrounds = 500,
+#  max_depth = 3,
+#  eta = 0.1,
+#  gamma = 1,
+#  colsample_bytree = 1,         
+#  min_child_weight = 5,
+#  subsample = 0.8
+#)
